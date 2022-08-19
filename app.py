@@ -9,12 +9,11 @@ from flask import *
 from flask_recaptcha import ReCaptcha
 from datetime import datetime, date
 from typing import Dict
-from discord import Webhook, RequestsWebhookAdapter
+from discord import SyncWebhook
 from markupsafe import Markup
 from werkzeug.utils import secure_filename
 from circleguard import *
 
-webhook = Webhook.partial(998476036620685362, 'kO8LXD36-ATSJWt9cU5V6XQbF0Irqci18mpsvD9jZW56bre0Vo4LXsbdk4RHeh8heABb', adapter=RequestsWebhookAdapter())
 app = Flask(__name__)
 app.config['RECAPTCHA_SITE_KEY'] = '6LeF3k8hAAAAAKdWhx5LfcJF8oSVDKSbMcXCQ8P5'
 app.config['RECAPTCHA_SECRET_KEY'] = '6LeF3k8hAAAAAL9y84Kptv26p8aj91g0GDVvEqzh'
@@ -60,7 +59,8 @@ def mail():
         discord = request.form.get('discord')
         if re.fullmatch(regex, email) and re.fullmatch(regex2, discord) and recaptcha.verify():
             message = "Your request was successfully send. For fast response, write me in discord: OwOuser#9860"
-            webhook.send(discord + ' requested for ' + email, username='dr.dre')
+            webhook = SyncWebhook.from_url("https://discord.com/api/webhooks/988218600890466385/OdcrJ73S2se06oHddMTLaW_EU391IIc5RU_nUvaTzfWQAv-Y9pKLK1Hk0hQ9m3Iy0W_N")
+            webhook.send(f" { discord } requested for { email } ")
         else:
             message = "I guess you made a typo. Please, check again discord and email fields."
 
