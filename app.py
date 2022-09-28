@@ -4,6 +4,9 @@ import os
 import re
 import requests
 import json
+import time
+import urllib.request
+import urllib.error
 
 from flask import *
 from flask_recaptcha import ReCaptcha
@@ -68,7 +71,7 @@ def mail():
 
 @app.route('/circleguard')
 def circleguard():
-   return render_template('circleguard.html')
+   return render_template('circleguard.html', common=common)
     
 @app.route('/circleguard', methods = ['GET', 'POST'])
 def circleguard_upload():
@@ -76,7 +79,7 @@ def circleguard_upload():
         f = request.files['file']
         f.save(secure_filename(f.filename))
         f.filename_underscope = f.filename.replace(" ", "_").replace(']','').replace('[','').replace('(','').replace(')','').replace("'","").replace('!','').replace('~','').replace('&','').replace(',','')
-        replay = ReplayPath(r"/home/owo/owo/" + f.filename_underscope)
+        replay = ReplayPath(r"/root/flask-website/" + f.filename_underscope)
         cg.load(replay)
         print(replay)
         # Getting replay ur, frametime, frametimes and snaps
@@ -97,10 +100,8 @@ def get_static_file(path):
     site_root = os.path.realpath(os.path.dirname(__file__))
     return os.path.join(site_root, path)
 
-
 def get_static_json(path):
     return json.load(open(get_static_file(path)))
-
 
 if __name__ == "__main__":
     print("running py app")
