@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Speed Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:100,200,300,400,500" rel="stylesheet">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0.0/jquery.counterup.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <style>
+        body{
+            background-color: gainsboro;
+        }
+        .container{
+            padding: 20px;
+            width: 100% !important;
+            min-height: 500px;
+            box-shadow: 0px 0px 5px 5px #ccc;
+        }
+        #main{
+            margin-top: 10%;
+        }
+        .data{
+            padding: 10px;
+            text-align: center;
+        }
+        .start-button{
+            padding: 5px;
+            margin-top: 40px;
+            text-align: center;
+        }
+        .isp-data{
+            padding: 10px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .data-box{
+            padding: 5px;
+            margin-top: 10px;
+        }
+        .w3-lobster{
+            font-family: "Lobster", serif;
+            padding: 5px;
+            margin-top: 40px;
+            text-align: center;
+            background: linear-gradient(to right, #30CFD0 0%, #330867 100%); 
+            -webkit-background-clip: text;
+	       -webkit-text-fill-color: transparent;
+        }
+        p{
+            font-family: Montserrat, sans-serif;
+            font-weight: 400px;
+            margin-top: 5px;
+        }
+        .btn-shine {
+            padding: 15px 35px;
+            background-image: linear-gradient(to right, #1bdbd1, #1fa2ff);
+            font-family: Montserrat, sans-serif;
+            font-weight: 400px;
+            border-radius: 60px;
+            overflow: hidden;
+            color: snow;
+        }
+        .btn-shine:hover{
+            transform: scale(1.1);
+            box-shadow: 0px 0px 2px 2px #33ccff;
+            color: snow;
+        }
+        .num{
+            color: blueviolet;
+        }
+    </style>
+</head>
+<body>
+   <div class="container" id="main" style="background-color: white; width: 50%; height: 50%;">
+       <div class="row row-cols-3 data-box">
+           <div class="col data">
+               <span class="num">{{upload}}</span>
+               <p>Upload (Kbps)</p>
+           </div>
+           <div class="col data">
+               <span class="num">{{download}}</span>
+               <p>Download (Kbps)</p>
+           </div>
+           <div class="col data">
+               <span class="num">{{ping}}</span>
+               <p>Ping</p>
+           </div>
+       </div>
+        <div class="isp-data">
+               <span style="color: blueviolet;">{{client}}</span>
+               <p>ISP</p>
+        </div>
+       <center>
+       <div class="spinner-border text-primary" role="status" style="display: none;">
+          <span class="sr-only">Loading...</span>
+       </div>
+       </center>
+       <div class="start-button">
+           <form action="/" method="POST">
+               <input type="hidden" name="name" value="1"/>
+               <button class="btn btn-shine" type="submit">Start</button>
+           </form>  
+       </div>
+       <div class="w3-container w3-lobster">
+<!--           <span><img src="download.png" width="80" height="50"></span><br/>-->
+           <span class="w3-xxxlarge">SpeedTest</span>
+       </div>
+    </div>
+<script type="text/javascript">
+	$(".num").counterUp({delay:20,time:2000});
+    document.querySelector(".btn-shine").addEventListener("click", function(){ 
+    document.querySelector(".spinner-border").style.display = "block"; 
+    setTimeout(function(){ 
+        document.querySelector(".btn-shine").innerHTML = "Loading"; 
+        document.querySelector(".btn-shine").disabled = true;
+    }, 1000);
+}); 
+</script>
+</body>
+</html>
