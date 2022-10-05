@@ -7,7 +7,6 @@ import json
 import time
 import urllib.request
 import urllib.error
-import speedtest
 
 from flask import *
 from flask_recaptcha import ReCaptcha
@@ -51,25 +50,6 @@ def sharex():
             filecount += 1
 
     return render_template('sharex.html', common=common, shibe=shibe_aa, filecount=filecount)
-
-@app.route('/speedtest', methods=['GET','POST'])
-def home():
-    if request.method == 'POST':
-        s = speedtest.Speedtest()
-        s.get_servers()
-        s.get_best_server()
-        s.download()
-        s.upload()
-        res = s.results.dict()
-        download = round(res["download"]/1000,2)
-        upload = round(res["upload"]/1000,2)
-        ping = round(res["ping"])
-        client = res["client"]["isp"]
-        country = res["client"]["country"]
-        print("-->Download Speed: {:.2f} Kb/s\n-->Upload Speed: {:.2f} Kb/s\n-->Ping: {}\n-->ISP: {}, {}".format(download,upload,ping, client,country))
-        return render_template('speedtest.html', download=download, upload=upload,ping=ping,client=client)
-    else:
-        return render_template('speedtest.html', download=0, upload=0,ping=0,client="---")   
 
 @app.route('/mail', methods=['GET', 'POST'])
 def mail():
