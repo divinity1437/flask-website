@@ -7,7 +7,11 @@ import json
 import time
 import urllib.request
 import urllib.error
+import socket
+import os
 
+from os.path import join, dirname
+from dotenv import load_dotenv
 from flask import *
 from flask_recaptcha import ReCaptcha
 from datetime import datetime, date
@@ -17,16 +21,20 @@ from markupsafe import Markup
 from werkzeug.utils import secure_filename
 from circleguard import *
 
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+
 app = Flask(__name__)
-app.config['RECAPTCHA_SITE_KEY'] = '6LeF3k8hAAAAAKdWhx5LfcJF8oSVDKSbMcXCQ8P5'
-app.config['RECAPTCHA_SECRET_KEY'] = '6LeF3k8hAAAAAL9y84Kptv26p8aj91g0GDVvEqzh'
+app.config['RECAPTCHA_SITE_KEY'] = os.environ.get("RECAPTCHA_SITE_KEY")
+app.config['RECAPTCHA_SECRET_KEY'] = os.environ.get("RECAPTCHA_SECRET_KEY")
 recaptcha = ReCaptcha(app) 
-cg = Circleguard("bf33f740eb88879490c804fc9c01884cb1b5bfa9")
+cg = Circleguard(os.environ.get("Circleguard"))
 
 common = {
     'first_name': 'OwOuser',
     'last_name': 'A.K.A morgn',
-    'alias': 'OwOuser#9860'
+    'alias': 'OwOuser#9860',
+    'domain': 'okayu.me'
 }
 
 regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
@@ -62,7 +70,7 @@ def mail():
         discord = request.form.get('discord')
         if re.fullmatch(regex, email) and re.fullmatch(regex2, discord) and recaptcha.verify():
             message = "Your request was successfully send. For fast response, write me in discord: OwOuser#9860"
-            webhook = SyncWebhook.from_url("https://discord.com/api/webhooks/988218600890466385/OdcrJ73S2se06oHddMTLaW_EU391IIc5RU_nUvaTzfWQAv-Y9pKLK1Hk0hQ9m3Iy0W_N")
+            webhook = SyncWebhook.from_url("https://discord.com/api/webhooks/1027323355881283715/LzhCMCto87RFXCIxsxr1APu28-sLmhVY4KSmW3bctAC7hYS4j4o5o-c7JBXS5J_YP7rR")
             webhook.send(f" { discord } requested for { email } ")
         else:
             message = "I guess you made a typo. Please, check again discord and email fields."
@@ -89,7 +97,7 @@ def circleguard_upload():
         print("replay was loaded and data was displayed, delete file now")
         os.remove(f.filename_underscope)
 
-        return 'ur = {} <br/>frametime = {} <br/>replay_frametimes =  {}<br/>replay_snaps = {}<br/>Play Date = {}<br/>Beatmap_id = {}<br/>Username = {}<br/>Mods = {}<br/>300: {}<br/>100: {}<br/>50: {}<br/>Miss: {}<br/>Score = {}<br/>Max Combo: {}'.format(replay_ur, replay_frametime, replay_frametimes, replay_snaps, r_timestamp, r_beatmap_id, r_username, r_mods, r_count_300, r_count_100, r_count_50, r_count_miss, r_score, r_max_combo)
+        return render_template('circleguard-post.html', replay_ur=replay_ur, replay_frametime=replay_frametime, replay_snaps=replay_snaps, r_timestamp=r_timestamp, r_beatmap_id=r_beatmap_id, r_username=r_username, r_mods=r_mods, r_count_300=r_count_300, r_count_100=r_count_100, r_count_50=r_count_50, r_count_miss=r_count_miss, r_score=r_score, r_max_combo=r_max_combo, common=common)
 
 @app.errorhandler(404)
 def page_not_found(e):
