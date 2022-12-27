@@ -59,24 +59,6 @@ def sharex():
 
     return render_template('sharex.html', common=common, shibe=shibe_aa, filecount=filecount)
 
-@app.route('/mail', methods=['GET', 'POST'])
-def mail():
-    message = ''
-    if request.method == 'GET':
-        email = request.form.get('email')
-        discord = request.form.get('discord')
-    if request.method == 'POST':
-        email = request.form.get('email')
-        discord = request.form.get('discord')
-        if re.fullmatch(regex, email) and re.fullmatch(regex2, discord) and recaptcha.verify():
-            message = "Your request was successfully send. For fast response, write me in discord: OwOuser#9860"
-            webhook = SyncWebhook.from_url("https://discord.com/api/webhooks/1027323355881283715/LzhCMCto87RFXCIxsxr1APu28-sLmhVY4KSmW3bctAC7hYS4j4o5o-c7JBXS5J_YP7rR")
-            webhook.send(f" { discord } requested for { email } ")
-        else:
-            message = "I guess you made a typo. Please, check again discord and email fields."
-
-    return render_template('mail.html', message=message, common=common)
-
 @app.route('/circleguard')
 def circleguard():
    return render_template('circleguard.html', common=common)
