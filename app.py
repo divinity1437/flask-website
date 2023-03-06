@@ -9,8 +9,9 @@ import urllib.request
 import urllib.error
 import socket
 import os
+import math
 
-from os.path import join, dirname
+from os.path import join, dirname, getsize
 from dotenv import load_dotenv
 from flask import *
 from flask_recaptcha import ReCaptcha
@@ -56,8 +57,12 @@ def sharex():
     for path in os.listdir(dir_path):
         if os.path.isfile(os.path.join(dir_path, path)):
             filecount += 1
+    for root, dirs, files in os.walk('/home/owo/sharex/images/'):
+        total_size = sum(getsize(join(root, name)) for name in files)
+        print(root, total_size/1024**2)
 
-    return render_template('sharex.html', common=common, shibe=shibe_aa, filecount=filecount)
+
+    return render_template('sharex.html', common=common, shibe=shibe_aa, filecount=filecount, total_size=total_size/1024**2)
 
 @app.route('/circleguard')
 def circleguard():
