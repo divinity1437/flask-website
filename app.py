@@ -10,8 +10,9 @@ import urllib.error
 import socket
 import os
 import math
+import statistics as stats
 
-from os.path import join, dirname, getsize
+from os.path import join, dirname
 from dotenv import load_dotenv
 from flask import *
 from flask_recaptcha import ReCaptcha
@@ -21,70 +22,118 @@ from discord import SyncWebhook
 from markupsafe import Markup
 from werkzeug.utils import secure_filename
 from circleguard import *
+from pathlib import Path
 
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
 app = Flask(__name__)
-app.config['RECAPTCHA_SITE_KEY'] = os.environ.get("RECAPTCHA_SITE_KEY")
-app.config['RECAPTCHA_SECRET_KEY'] = os.environ.get("RECAPTCHA_SECRET_KEY")
-recaptcha = ReCaptcha(app) 
 cg = Circleguard(os.environ.get("Circleguard"))
+# replay folder
+UPLOAD_FOLDER = os.path.join(app.root_path, "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 common = {
     'first_name': 'OwOuser',
-    'last_name': 'A.K.A morgn',
-    'alias': 'OwOuser#9860',
-    'domain': 'okayu.me'
+    'last_name': 'A.K.A MyAngelAkia',
+    'alias': 'OwOuser',
+    'domain': 'okayu.click'
 }
-
-regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
-regex2 = re.compile(r"(?:!\w+\s+)?([\w\s]*#[0-9]*)")
 
 @app.route('/')
 def index():
     return render_template('home.html', common=common)
 
-@app.route('/sharex', methods=['GET', 'POST'])
-def sharex():
-    shibe = requests.get("http://shibe.online/api/shibes?count=1&urls=true&httpsUrls=true").text
-    shibe_parsed = json.loads(shibe)
-    shibe_aa = shibe_parsed[0]
-    
-    # Total count of images in dir
-    dir_path = r'/home/owo/sharex/images/'
-    filecount = 0
-    for path in os.listdir(dir_path):
-        if os.path.isfile(os.path.join(dir_path, path)):
-            filecount += 1
-    for root, dirs, files in os.walk('/home/owo/sharex/images/'):
-        total_size = sum(getsize(join(root, name)) for name in files)
-        print(root, total_size/1024**2)
+def fetch_beatmap_direct(beatmap_id: int):
+    """Получает данные карты через osu.direct API по beatmap_id."""
+    try:
+        url = f"https://osu.direct/api/v2/b/{beatmap_id}"
+        r = requests.get(url, timeout=8)
+        if r.status_code == 200:
+            data = r.json()
+            return {
+                "artist": data.get("artist"),
+                "title": data.get("title"),
+                "version": data.get("version"),
+                "creator": data.get("creator"),
+                "bpm": data.get("bpm"),
+                "length": data.get("length"),
+                "cs": data.get("cs"),
+                "ar": data.get("ar"),
+                "od": data.get("od"),
+                "hp": data.get("hp"),
+                "beatmapset_id": data.get("beatmapset_id"),
+                "beatmap_id": beatmap_id
+            }
+    except Exception as e:
+        print("osu.direct API error:", e)
+    return None
 
-
-    return render_template('sharex.html', common=common, shibe=shibe_aa, filecount=filecount, total_size=total_size/1024**2)
-
-@app.route('/circleguard')
-def circleguard():
-   return render_template('circleguard.html', common=common)
-    
-@app.route('/circleguard', methods = ['GET', 'POST'])
+@app.route('/circleguard', methods=['GET', 'POST'])
 def circleguard_upload():
-    if request.method == 'POST':
-        f = request.files['file']
-        f.save(secure_filename(f.filename))
-        f.filename_underscope = f.filename.replace(" ", "_").replace(']','').replace('[','').replace('(','').replace(')','').replace("'","").replace('!','').replace('~','').replace('&','').replace(',','')
-        replay = ReplayPath(r"/root/flask-website/" + f.filename_underscope)
-        cg.load(replay)
-        print(replay)
-        # Getting replay ur, frametime, frametimes and snaps
-        replay_ur, replay_frametime, replay_frametimes, replay_snaps = cg.ur(replay), cg.frametime(replay), cg.frametimes(replay), cg.snaps(replay, max_angle=12, min_distance=6)
-        # Getting replay info such as bmap, timestamp, username, mods, 300/100/50/miss and score
-        r_timestamp, r_beatmap_id, r_username, r_mods, r_count_300, r_count_100, r_count_50, r_count_miss, r_score, r_max_combo = replay.timestamp, replay.beatmap_id, replay.username, replay.mods,replay.count_300, replay.count_100, replay.count_50, replay.count_miss, replay.score, replay.max_combo
-        print("replay was loaded and data was displayed, delete file now")
-        os.remove(f.filename_underscope)
+    if request.method == 'GET':
+        return render_template("circleguard-upload.html")
 
-        return render_template('circleguard-post.html', replay_ur=replay_ur, replay_frametime=replay_frametime, replay_snaps=replay_snaps, r_timestamp=r_timestamp, r_beatmap_id=r_beatmap_id, r_username=r_username, r_mods=r_mods, r_count_300=r_count_300, r_count_100=r_count_100, r_count_50=r_count_50, r_count_miss=r_count_miss, r_score=r_score, r_max_combo=r_max_combo, common=common)
+    if "file" not in request.files:
+        return jsonify({"error": "File not found"}), 400
+
+    f = request.files["file"]
+    if f.filename == "":
+        return jsonify({"error": "Empty filename"}), 400
+
+    if not f.filename.lower().endswith(".osr"):
+        return jsonify({"error": "Only .osr files are allowed"}), 400
+
+    filename = secure_filename(f.filename)
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    f.save(file_path)
+
+    try:
+        cg = Circleguard(os.environ.get("Circleguard"))
+
+        replay = ReplayPath(file_path)
+        cg.load(replay)
+
+        # Базовые данные
+        replay_data = {
+            "username": replay.username,
+            "beatmap_id": replay.beatmap_id,
+            "mods": replay.mods,
+            "score": replay.score,
+            "ur": cg.ur(replay),
+            "frametime": cg.frametime(replay),
+            "snaps": [
+                {
+                    "angle": float(snap.angle),
+                    "distance": float(snap.distance),
+                }
+                for snap in cg.snaps(replay, max_angle=12, min_distance=6)
+            ],
+        }
+
+        # frametime анализ
+        frametimes = cg.frametimes(replay)
+        if frametimes is not None and len(frametimes) > 0:
+            ft = [float(x) for x in frametimes]
+            mean_ft = stats.mean(ft)
+            stdev_ft = stats.pstdev(ft)
+            cv = stdev_ft / (mean_ft or 1)
+            replay_data["frametime_cv"] = cv
+            replay_data["frametime_suspicious"] = cv < 0.01
+        else:
+            replay_data["frametime_cv"] = None
+            replay_data["frametime_suspicious"] = False
+
+        # Загружаем инфу о карте через osu.direct
+        beatmap_info = fetch_beatmap_direct(replay.beatmap_id)
+        replay_data["beatmap"] = beatmap_info
+
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+    return render_template("circleguard.html", replay=replay_data)
+
 
 @app.errorhandler(404)
 def page_not_found(e):

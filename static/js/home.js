@@ -3,8 +3,8 @@ $(function() {
     $(".typed").typed({
       strings: [
         "whoami<br/>" +
-        "><span class='caret'>$</span> job: beer pub lol :o <br/> ^100" +
-        "><span class='caret'>$</span> skills: html, css, python (everything low skill) <br/> ^100" +
+        "><span class='caret'>$</span> job: mobile network operator :o <br/> ^100" +
+        "><span class='caret'>$</span> skills: html, css, python <br/> ^100" +
         "><span class='caret'>$</span> hobbies: coding python<br/> ^300"
       ],
       showCursor: true,
