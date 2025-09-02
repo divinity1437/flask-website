@@ -14,7 +14,7 @@
     .badge-pill { border-radius: 999px; }
     .small-muted { font-size: .9rem; color:#6c757d; }
     .snaps-box { max-height: 300px; overflow:auto; border-radius:.5rem; }
-    .card-title, .card-text {color: #fff}
+    .card-title, .card-text {color: #fff; text-shadow: 0px 0px 10px #000;}
   </style>
 </head>
 <body>
@@ -28,7 +28,7 @@
           <!-- Beatmap Info Section -->
           {% if replay.beatmap %}
             <div class="card mb-3" style="
-              background: linear-gradient(#22222227, #22222227), url('https://assets.ppy.sh/beatmaps/{{ replay.beatmap.beatmapset_id }}/covers/cover.jpg');
+              background: linear-gradient(#00000052, #00000052), url('https://assets.ppy.sh/beatmaps/{{ replay.beatmap.beatmapset_id }}/covers/cover.jpg');
               background-position: center;
               background-size: cover;
             ">
