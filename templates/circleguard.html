@@ -6,11 +6,15 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <style>
     body { background:#f4f6fa; font-family: "Segoe UI", sans-serif; padding: 2em; }
-    .card { border-radius: 1rem; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    .card { 
+      border-radius: 1rem; 
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1); 
+    }
     .card-header { font-size: 1.25rem; font-weight: 700; }
     .badge-pill { border-radius: 999px; }
     .small-muted { font-size: .9rem; color:#6c757d; }
     .snaps-box { max-height: 300px; overflow:auto; border-radius:.5rem; }
+    .card-title, .card-text {color: #fff}
   </style>
 </head>
 <body>
@@ -23,12 +27,12 @@
 
           <!-- Beatmap Info Section -->
           {% if replay.beatmap %}
-            <div class="card mb-3">
+            <div class="card mb-3" style="
+              background: linear-gradient(#22222227, #22222227), url('https://assets.ppy.sh/beatmaps/{{ replay.beatmap.beatmapset_id }}/covers/cover.jpg');
+              background-position: center;
+              background-size: cover;
+            ">
               <div class="row g-0 align-items-center">
-                <div class="col-md-4">
-                  <img src="https://assets.ppy.sh/beatmaps/{{ replay.beatmap.beatmapset_id }}/covers/cover.jpg"
-                      class="img-fluid rounded-start" alt="Beatmap Cover">
-                </div>
                 <div class="col-md-8">
                   <div class="card-body">
                     <h5 class="card-title">{{ replay.beatmapset.artist }} – {{ replay.beatmapset.title }}</h5>
