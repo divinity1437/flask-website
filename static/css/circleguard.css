@@ -1,0 +1,62 @@
+/* Скрываем стандартный input */
+input[type="file"] {
+  display: none;
+}
+
+/* Контейнер */
+.upload-container {
+  margin: 6em auto;
+  max-width: 480px;
+  padding: 2em;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.upload-container:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+/* Drag&Drop зона */
+.dropzone {
+  border: 2px dashed #6c63ff;
+  border-radius: 12px;
+  padding: 2em 1em;
+  margin-bottom: 1.5em;
+  cursor: pointer;
+  background: #f9f9ff;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+.dropzone:hover {
+  border-color: #4b47d6;
+  background: #f0f0ff;
+}
+.dropzone p {
+  margin: 0;
+  font-size: 15px;
+  color: #555;
+}
+
+/* Кнопка */
+.btn-upload {
+  display: inline-block;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #6c63ff, #4b47d6);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-upload:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 71, 214, 0.4);
+}
+.btn-upload:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
