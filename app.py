@@ -44,13 +44,40 @@ common = {
 def index():
     return render_template('home.html', common=common)
 
+def fetch_beatmapset_direct(beatmapset_id: int):
+    """Получает данные карты через osu.direct API по beatmap_id."""
+    try:
+        url = f"https://osu.direct/api/v2/s/{beatmapset_id}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/138.0.0.0 Safari/537.36"
+        }
+        r = requests.get(url, timeout=8, headers=headers)
+        data = r.json()
+        if r.status_code == 200:
+            return {
+                "artist": data.get("artist"),
+                "title": data.get("title"),
+                "creator": data.get("creator"),
+                "beatmapset_id": beatmapset_id
+            }
+    except Exception as e:
+        print("osu.direct API error:", e)
+    return None
+
 def fetch_beatmap_direct(beatmap_id: int):
     """Получает данные карты через osu.direct API по beatmap_id."""
     try:
         url = f"https://osu.direct/api/v2/b/{beatmap_id}"
-        r = requests.get(url, timeout=8)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/138.0.0.0 Safari/537.36"
+        }
+        r = requests.get(url, timeout=8, headers=headers)
+        data = r.json()
         if r.status_code == 200:
-            data = r.json()
             return {
                 "artist": data.get("artist"),
                 "title": data.get("title"),
@@ -60,8 +87,8 @@ def fetch_beatmap_direct(beatmap_id: int):
                 "length": data.get("length"),
                 "cs": data.get("cs"),
                 "ar": data.get("ar"),
-                "od": data.get("od"),
-                "hp": data.get("hp"),
+                "od": data.get("accuracy"),
+                "hp": data.get("drain"),
                 "beatmapset_id": data.get("beatmapset_id"),
                 "beatmap_id": beatmap_id
             }
@@ -128,12 +155,19 @@ def circleguard_upload():
         beatmap_info = fetch_beatmap_direct(replay.beatmap_id)
         replay_data["beatmap"] = beatmap_info
 
+        # Получаем beatmapset_id из данных карты
+        beatmapset_id = beatmap_info.get("beatmapset_id") if beatmap_info else None
+        if beatmapset_id:
+            beatmapset_info = fetch_beatmapset_direct(beatmapset_id)
+            replay_data["beatmapset"] = beatmapset_info
+        else:
+            replay_data["beatmapset"] = None
+
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
 
     return render_template("circleguard.html", replay=replay_data)
-
 
 @app.errorhandler(404)
 def page_not_found(e):

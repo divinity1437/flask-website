@@ -31,10 +31,10 @@
                 </div>
                 <div class="col-md-8">
                   <div class="card-body">
-                    <h5 class="card-title">{{ replay.beatmap.artist }} – {{ replay.beatmap.title }}</h5>
+                    <h5 class="card-title">{{ replay.beatmapset.artist }} – {{ replay.beatmapset.title }}</h5>
                     <p class="card-text">
                       <strong>Diff:</strong> {{ replay.beatmap.version }} •
-                      <strong>Mapper:</strong> {{ replay.beatmap.creator }}<br>
+                      <strong>Mapper:</strong> {{ replay.beatmapset.creator }}<br>
                       {% if replay.beatmap.bpm %}
                         <strong>BPM:</strong> {{ replay.beatmap.bpm }} •
                       {% endif %}
