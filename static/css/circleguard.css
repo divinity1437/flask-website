@@ -1,62 +1,161 @@
-/* Скрываем стандартный input */
-input[type="file"] {
-  display: none;
+body {
+    font-family: 'Open Sans', sans-serif;
+    background-color: #f4f6fa;
+    margin: 0;
+    padding: 0;
 }
 
-/* Контейнер */
-.upload-container {
-  margin: 6em auto;
-  max-width: 480px;
-  padding: 2em;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
-  text-align: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.upload-container:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2em 1em;
 }
 
-/* Drag&Drop зона */
-.dropzone {
-  border: 2px dashed #6c63ff;
-  border-radius: 12px;
-  padding: 2em 1em;
-  margin-bottom: 1.5em;
-  cursor: pointer;
-  background: #f9f9ff;
-  transition: border-color 0.3s ease, background 0.3s ease;
-}
-.dropzone:hover {
-  border-color: #4b47d6;
-  background: #f0f0ff;
-}
-.dropzone p {
-  margin: 0;
-  font-size: 15px;
-  color: #555;
+.card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 2em;
+    width: 100%;
+    text-align: center;
+    color: #000;
 }
 
-/* Кнопка */
+.card-body {
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+}
+
+.card-body h1,
+.card-body h2,
+.card-body p {
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+}
+
+.card-summary,
+.card-snaps {
+    width: 100%;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 1em;
+    box-sizing: border-box;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.card-text {
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.btn-primary {
+    background-color: #ff66aa;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover {
+    background-color: #ff3385;
+    transform: scale(1.02);
+}
+
+.btn-secondary {
+    background-color: #808080;
+    color: white;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.btn-secondary:hover {
+    background-color: #555;
+    transform: scale(1.02);
+}
+
 .btn-upload {
-  display: inline-block;
-  padding: 12px 24px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #6c63ff, #4b47d6);
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #20c997;
+    color: #fff;
+    font-weight: bold;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    text-decoration: none;
+    border: none;
+    font-size: 1rem;
 }
+
 .btn-upload:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 71, 214, 0.4);
+    background-color: #17a2b8;
+    transform: scale(1.05);
 }
-.btn-upload:active {
-  transform: translateY(0);
-  box-shadow: none;
+
+.btn-upload svg {
+    margin-right: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    table-layout: fixed;
+}
+
+table th, table td {
+    padding: 10px;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid #dee2e6;
+}
+
+table td.comment {
+    width: 30%;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+table tbody tr.table-danger { background-color: #f8d7da !important; }
+table tbody tr.table-warning { background-color: #fff3cd !important; }
+table tbody tr.table-success { background-color: #d4edda !important; }
+
+.snaps-box {
+    max-height: 300px;
+    overflow-y: auto;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.small-muted {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* Responsive */
+@media only screen and (max-width: 768px) {
+    .container { padding: 1em; }
+    .card-title { font-size: 1.25rem; }
+    .card-text { font-size: 0.9rem; }
+    .btn-primary, .btn-secondary, .btn-upload { padding: 8px 16px; font-size: 0.9rem; }
+    .snaps-box { max-height: 250px; padding: 8px; }
 }

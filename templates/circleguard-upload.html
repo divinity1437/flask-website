@@ -1,33 +1,38 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <title>Replay Upload Form</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <style>
-    body { background: #f4f6fa; font-family: "Segoe UI", sans-serif; padding: 2em; }
-    .card { border-radius: 1rem; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-    .card-header { font-size: 1.3rem; font-weight: bold; }
-  </style>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/circleguard.css') }}">
+{% endblock %}
+
+{% block body %}
 <div class="container">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header text-center">Upload Replay</div>
-        <div class="card-body">
-            <form action="/circleguard" method="post" enctype="multipart/form-data">
-            <div class="mb-3">
-                <input class="form-control" type="file" name="file" accept=".osr" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Upload</button>
-            </form>
-            <a href="/" class="btn btn-secondary w-100 mt-3">Back to Main Page</a>
-        </div>
-      </div>
+    <div class="card">
+        <h1 class="mb-4">Circleguard Replay Upload</h1>
+
+        <form method="POST" enctype="multipart/form-data" id="uploadForm" class="d-flex flex-column align-items-center">
+            <label for="fileInput" class="btn-upload w-100 mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload me-2" viewBox="0 0 16 16">
+                  <path d="M.5 9.9a.5.5 0 0 1 .5-.5h3v5h8v-5h3a.5.5 0 0 1 0 1h-3v5h-8v-5h-3a.5.5 0 0 1-.5-.5z"/>
+                  <path d="M7.646 1.146a.5.5 0 0 1 .708 0L10.5 3.293V10.5a.5.5 0 0 1-1 0V4.707L8 2.707 5.5 4.707V10.5a.5.5 0 0 1-1 0V3.293l2.146-2.147z"/>
+                </svg>
+                Choose Replay File (.osr)
+            </label>
+            <input type="file" name="file" id="fileInput" accept=".osr" required style="display:none;">
+
+            <button type="submit" class="btn-primary w-100">Upload Replay</button>
+        </form>
+
+        {% if error %}
+            <p class="text-danger">{{ error }}</p>
+        {% endif %}
+
+        {% if success %}
+            <p class="text-success">{{ success }}</p>
+        {% endif %}
     </div>
-  </div>
+
+    <div class="text-center mb-4">
+        <a href="/" class="btn-secondary">⬅ Back to Home</a>
+    </div>
 </div>
-</body>
-</html>
+{% endblock %}

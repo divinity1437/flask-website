@@ -1,198 +1,109 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Replay Analysis Results</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-  <style>
-    body { background:#f4f6fa; font-family: "Segoe UI", sans-serif; padding: 2em; }
-    .card { 
-      border-radius: 1rem; 
-      box-shadow: 0 6px 20px rgba(0,0,0,0.1); 
-    }
-    .card-header { font-size: 1.25rem; font-weight: 700; }
-    .badge-pill { border-radius: 999px; }
-    .small-muted { font-size: .9rem; color:#6c757d; }
-    .snaps-box { max-height: 300px; overflow:auto; border-radius:.5rem; }
-    .card-title, .card-text {color: #fff; text-shadow: 0px 0px 10px #000;}
-  </style>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/circleguard.css') }}">
+{% endblock %}
+
+{% block body %}
 <div class="container">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <div class="card">
-        <div class="card-header text-center">Replay Analysis</div>
+
+    <h1 class="mb-4 text-center">Replay Analysis</h1>
+
+    {% if replay.beatmap %}
+    <div class="card card-beatmap" style="background-image: url('https://assets.ppy.sh/beatmaps/{{ replay.beatmap.beatmapset_id }}/covers/cover.jpg');">
         <div class="card-body">
+            <h5 class="card-title">{{ replay.beatmapset.artist }} – {{ replay.beatmapset.title }}</h5>
+            <p class="card-text">
+                <strong>Diff:</strong> {{ replay.beatmap.version }} •
+                <strong>Mapper:</strong> {{ replay.beatmapset.creator }}<br>
+                {% if replay.beatmap.bpm %}<strong>BPM:</strong> {{ replay.beatmap.bpm }} •{% endif %}
+                {% if replay.beatmap.length %}<strong>Length:</strong> {{ replay.beatmap.length }}s •{% endif %}
+                <strong>CS/AR/OD/HP:</strong> {{ replay.beatmap.cs }}/{{ replay.beatmap.ar }}/{{ replay.beatmap.od }}/{{ replay.beatmap.hp }}
+            </p>
+            <a href="https://osu.ppy.sh/beatmapsets/{{ replay.beatmap.beatmapset_id }}/#osu/{{ replay.beatmap_id }}" class="btn btn-primary" target="_blank">View on osu!</a>
+        </div>
+    </div>
+    {% endif %}
 
-          <!-- Beatmap Info Section -->
-          {% if replay.beatmap %}
-            <div class="card mb-3" style="
-              background: linear-gradient(#00000052, #00000052), url('https://assets.ppy.sh/beatmaps/{{ replay.beatmap.beatmapset_id }}/covers/cover.jpg');
-              background-position: center;
-              background-size: cover;
-            ">
-              <div class="row g-0 align-items-center">
-                <div class="col-md-8">
-                  <div class="card-body">
-                    <h5 class="card-title">{{ replay.beatmapset.artist }} – {{ replay.beatmapset.title }}</h5>
-                    <p class="card-text">
-                      <strong>Diff:</strong> {{ replay.beatmap.version }} •
-                      <strong>Mapper:</strong> {{ replay.beatmapset.creator }}<br>
-                      {% if replay.beatmap.bpm %}
-                        <strong>BPM:</strong> {{ replay.beatmap.bpm }} •
-                      {% endif %}
-                      {% if replay.beatmap.length %}
-                        <strong>Length:</strong> {{ replay.beatmap.length }}s •
-                      {% endif %}
-                      <strong>CS/AR/OD/HP:</strong>
-                      {{ replay.beatmap.cs }}/{{ replay.beatmap.ar }}/{{ replay.beatmap.od }}/{{ replay.beatmap.hp }}
-                    </p>
-                    <a href="https://osu.ppy.sh/beatmapsets/{{ replay.beatmap.beatmapset_id }}/#osu/{{ replay.beatmap_id }}"
-                      class="btn btn-primary" target="_blank">View on osu!</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          {% else %}
-            <div class="alert alert-warning">Beatmap info unavailable.</div>
-          {% endif %}
-
-          <!-- Summary -->
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <div class="p-3 border rounded-3 bg-light">
-                <div class="small-muted">Player</div>
-                <div class="fw-semibold">{{ replay.username }}</div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="p-3 border rounded-3 bg-light">
-                <div class="small-muted">Beatmap ID</div>
-                <div class="fw-semibold">{{ replay.beatmap_id }}</div>
-              </div>
-            </div>
-          </div>
-
-          <table class="table align-middle">
+    <div class="card card-summary p-3 mb-4">
+    <h5 class="card-title">Replay Summary</h5>
+    <table class="table align-middle mb-0">
             <tbody>
-              {# -------- UR Row -------- #}
-              <tr class="
-                {% if replay.ur < 40 or replay.ur > 200 %}table-danger
-                {% elif (replay.ur >= 40 and replay.ur <= 55) or (replay.ur > 180 and replay.ur <= 200) %}table-warning
-                {% else %}table-success{% endif %}
-              ">
-                <th class="w-25">UR (Unstable Rate)</th>
-                <td class="w-50">
-                  {{ "%.2f"|format(replay.ur) }}
-                  <span class="ms-2 badge badge-pill
-                    {% if replay.ur < 40 or replay.ur > 200 %} bg-danger
-                    {% elif (replay.ur >= 40 and replay.ur <= 55) or (replay.ur > 180 and replay.ur <= 200) %} bg-warning text-dark
-                    {% else %} bg-success{% endif %}
-                  ">
-                    {% if replay.ur < 40 or replay.ur > 200 %}Suspicious
-                    {% elif (replay.ur >= 40 and replay.ur <= 55) or (replay.ur > 180 and replay.ur <= 200) %}Warning
-                    {% else %}OK{% endif %}
-                  </span>
-                </td>
-                <td class="small-muted">Typical 70–180. &lt;40 or &gt;200 can be abnormal.</td>
-              </tr>
+                <tr class="
+                    {% if replay.ur < 40 or replay.ur > 200 %}table-danger
+                    {% elif (replay.ur >= 40 and replay.ur <= 55) or (replay.ur > 180 and replay.ur <= 200) %}table-warning
+                    {% else %}table-success{% endif %}
+                ">
+                    <th class="w-25">UR (Unstable Rate)</th>
+                    <td class="w-50">{{ "%.2f"|format(replay.ur) }}</td>
+                    <td class="small-muted">Typical 70–180. &lt;40 or &gt;200 can be abnormal.</td>
+                </tr>
 
-              {# -------- Frametime Row -------- #}
-              <tr class="{% if replay.frametime_suspicious %}table-danger{% endif %}">
-                <th>FrameTime (avg)</th>
-                <td>
-                  {{ "%.2f"|format(replay.frametime) }} ms
-                  {% if replay.frametime_suspicious %}
-                    <span class="badge bg-danger ms-2">Suspicious</span>
-                  {% endif %}
-                  <div class="small text-muted">
-                    CV = {{ "%.5f"|format(replay.frametime_cv) if replay.frametime_cv is not none else "N/A" }}
-                  </div>
-                </td>
-                <td class="small-muted">~16ms@60fps, ~8ms@120fps, ~4ms@240fps.</td>
-              </tr>
+                <tr class="{% if replay.frametime_suspicious %}table-danger{% endif %}">
+                    <th>FrameTime (avg)</th>
+                    <td>{{ "%.2f"|format(replay.frametime) }} ms</td>
+                    <td class="small-muted">~16ms@60fps, ~8ms@120fps, ~4ms@240fps. CV = {{ "%.5f"|format(replay.frametime_cv) if replay.frametime_cv is not none else "N/A" }}</td>
+                </tr>
 
-              {# -------- Snaps Row -------- #}
-              <tr class="
-                {% set snaps_len = (replay.snaps|length) if replay.snaps is defined else 0 %}
-                {% if snaps_len >= 50 %}table-danger
-                {% elif snaps_len >= 15 %}table-warning
-                {% else %}table-success{% endif %}
-              ">
-                <th>Snaps (count)</th>
-                <td>
-                  {{ snaps_len }}
-                  <span class="ms-2 badge badge-pill
-                    {% if snaps_len >= 50 %} bg-danger
-                    {% elif snaps_len >= 15 %} bg-warning text-dark
-                    {% else %} bg-success{% endif %}
-                  ">
-                    {% if snaps_len >= 50 %}Suspicious
-                    {% elif snaps_len >= 15 %}Warning
-                    {% else %}OK{% endif %}
-                  </span>
-                </td>
-                <td class="small-muted">Many sharp cursor angles/jumps can indicate aim assist.</td>
-              </tr>
+                <tr class="
+                    {% set snaps_len = (replay.snaps|length) if replay.snaps is defined else 0 %}
+                    {% if snaps_len >= 50 %}table-danger
+                    {% elif snaps_len >= 15 %}table-warning
+                    {% else %}table-success{% endif %}
+                ">
+                    <th>Snaps (count)</th>
+                    <td>{{ snaps_len }}</td>
+                    <td class="small-muted">Many sharp cursor angles/jumps can indicate aim assist.</td>
+                </tr>
 
-              <tr>
-                <th>Mods</th>
-                <td>{{ replay.mods }}</td>
-                <td class="small-muted">Shown as raw bitmask/string from replay.</td>
-              </tr>
+                <tr>
+                    <th>Mods</th>
+                    <td>{{ replay.mods }}</td>
+                    <td class="small-muted">Shown as raw bitmask/string from replay.</td>
+                </tr>
 
-              <tr>
-                <th>Score</th>
-                <td>{{ replay.score }}</td>
-                <td class="small-muted">Contextual to beatmap.</td>
-              </tr>
+                <tr>
+                    <th>Score</th>
+                    <td>{{ replay.score }}</td>
+                    <td class="small-muted">Contextual to beatmap.</td>
+                </tr>
             </tbody>
-          </table>
+        </table>
+    </div>
 
-          <!-- Snaps details -->
-          <div class="mb-3">
-            <div class="small-muted mb-1">Snaps detail</div>
-            <div class="snaps-box">
-              {% if replay.snaps and replay.snaps|length > 0 %}
-              <table class="table table-sm table-hover mb-0">
+    <div class="card card-snaps p-3 mb-4">
+        <h5 class="card-title">Snaps Details</h5>
+        <div class="snaps-box">
+            {% if replay.snaps and replay.snaps|length > 0 %}
+            <table class="table table-sm table-hover mb-0">
                 <thead class="table-light">
-                  <tr>
-                    <th>#</th>
-                    <th>Frame</th>
-                    <th>Angle</th>
-                    <th>Distance</th>
-                  </tr>
+                    <tr>
+                        <th>#</th>
+                        <th>Frame</th>
+                        <th>Angle</th>
+                        <th>Distance</th>
+                    </tr>
                 </thead>
                 <tbody>
-                  {% for snap in replay.snaps %}
-                  <tr class="
-                    {% if snap.angle < 3 or snap.distance < 3 %}table-danger
-                    {% elif snap.angle < 7 or snap.distance < 7 %}table-warning
-                    {% endif %}
-                  ">
-                    <td>{{ loop.index }}</td>
-                    <td>{{ snap.frame }}</td>
-                    <td>{{ "%.2f"|format(snap.angle) }}</td>
-                    <td>{{ "%.2f"|format(snap.distance) }}</td>
-                  </tr>
-                  {% endfor %}
+                    {% for snap in replay.snaps %}
+                    <tr class="{% if snap.angle < 3 or snap.distance < 3 %}table-danger{% elif snap.angle < 7 or snap.distance < 7 %}table-warning{% endif %}">
+                        <td>{{ loop.index }}</td>
+                        <td>{{ snap.frame }}</td>
+                        <td>{{ "%.2f"|format(snap.angle) }}</td>
+                        <td>{{ "%.2f"|format(snap.distance) }}</td>
+                    </tr>
+                    {% endfor %}
                 </tbody>
-              </table>
-              {% else %}
-                <p class="text-muted">No snaps detected.</p>
-              {% endif %}
-            </div>
-          </div>
-
-          <div class="text-center">
-            <a href="/circleguard" class="btn btn-secondary">⬅ Back to Upload</a>
-          </div>
-
+            </table>
+            {% else %}
+                <p class="small-muted mb-0">No snaps detected.</p>
+            {% endif %}
         </div>
-      </div>
     </div>
-  </div>
+
+    <div class="text-center mb-4">
+        <a href="/circleguard" class="btn btn-secondary">⬅ Back to Upload</a>
+    </div>
+
 </div>
-</body>
-</html>
+{% endblock %}

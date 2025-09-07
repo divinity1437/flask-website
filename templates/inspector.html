@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/inspector.css') }}">
+{% endblock %}
+
+{% block body %}
+<h1>Profile Inspector</h1>
+
+<form id="lookupForm" method="POST">
+    <input type="text" name="username" placeholder="Type a username" value="{{ username }}" required>
+
+    <div class="mode-icons">
+        <span class="mode-icon mode-osu {% if mode == 0 %}active{% endif %}" onclick="selectMode(0)"></span>
+        <span class="mode-icon mode-taiko {% if mode == 1 %}active{% endif %}" onclick="selectMode(1)"></span>
+        <span class="mode-icon mode-catch {% if mode == 2 %}active{% endif %}" onclick="selectMode(2)"></span>
+        <span class="mode-icon mode-mania {% if mode == 3 %}active{% endif %}" onclick="selectMode(3)"></span>
+    </div>
+
+    <input type="hidden" name="mode" id="modeInput" value="{{ mode }}">
+    <button type="submit">Search</button>
+</form>
+
+{% if error %}
+<p style="color:red;">{{ error }}</p>
+{% endif %}
+
+{% if user %}
+<div class="card">
+    <img class="avatar" src="https://a.ppy.sh/{{ user['user_id'] }}" alt="Avatar">
+    <h2>{{ user['username'] }}</h2>
+    <p>Country: 
+        <img src="https://okayu.click/static/images/flags/{{ user['country'] }}.png" alt="country-code" width="32px">
+    </p>
+    <p>PP: {{ user['pp_raw'] }}</p>
+    <p>Rank: #{{ user['pp_rank'] }}</p>
+    <p>Acc: {{ "%.2f"|format(user['accuracy']|float) }}%</p>
+    <p>Playcount: {{ user['playcount'] }}</p>
+</div>
+{% endif %}
+
+<script>
+function selectMode(mode) {
+    document.getElementById('modeInput').value = mode;
+    document.getElementById('lookupForm').submit();
+}
+</script>
+{% endblock %}

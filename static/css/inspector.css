@@ -1,0 +1,80 @@
+body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        form {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .mode-icons
+        {
+            margin: 10px 0;
+        }
+        input[type="text"] {
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        button, .mode-btn {
+            padding: 8px 16px;
+            background-color: #ff66aa;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 4px;
+        }
+        button:hover, .mode-btn:hover {
+            background-color: #ff3385;
+        }
+        .mode-btn.active {
+            background-color: #ff3385;
+            font-weight: bold;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
+            padding: 20px;
+            width: 300px;
+            text-align: center;
+        }
+        .avatar {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+        }
+
+        @font-face {
+            font-family: 'osu-mode';
+            src: url('/static/fonts/extra.ttf') format('truetype');
+        }
+
+        .mode-icon {
+            font-family: 'osu-mode';
+            color: #000000;
+            font-size: 36px; /* можно увеличить */
+            cursor: pointer;
+            margin: 0 8px;
+            transition: transform 0.2s, color 0.2s;
+        }
+
+        .mode-icon:hover {
+            color: #ff66aa;
+            transform: scale(1.2);
+        }
+
+        .mode-icon.active {
+            color: #ff3385;
+        }
+
+        .mode-osu::before { content: "\E800"; position: relative; }
+        .mode-catch::before { content: "\E801"; position: relative; }
+        .mode-mania::before { content: "\E802"; position: relative; }
+        .mode-taiko::before { content: "\E803"; position: relative; }
