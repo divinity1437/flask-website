@@ -18,6 +18,36 @@ A Flask-based web application showcasing **osu! profile inspector** and **Circle
 
 ---
 
+## TODO
+
+- [ ] Add user authentication via **osu!okayu** to download scores.
+- [ ] Implement osu! API caching for faster user lookups
+- [ ] Add detailed stats visualization (charts/graphs)
+- [ ] Improve error handling for API failures
+- [ ] Add support for additional osu! mods and modes
+
+### UI/UX
+- [ ] Make the navbar responsive for mobile devices
+- [ ] Add dark mode support
+- [ ] Improve file upload button styling
+- [ ] Enhance card layouts for inspector and Circleguard results
+- [ ] Display charts for UR, frametime, and snaps
+
+### Performance
+- [ ] Optimize database queries for Circleguard library
+- [ ] Add caching layer for repeated beatmap/replay lookups
+- [ ] Reduce page load time for heavy replay analysis
+
+### Documentation
+- [ ] Add more examples in README
+- [ ] Document all routes and template usage
+- [ ] Provide troubleshooting section for common errors
+
+### Deployment
+- [ ] Configure environment variables for API keys
+- [ ] Setup production-ready server configuration
+- [ ] Add automated deployment scripts
+
 ## Installation
 
 1. **Clone the repository**
