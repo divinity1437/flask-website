@@ -1,8 +1,6 @@
-circleguard
-discord.py
 Flask
-Flask_hCaptcha
-Flask_ReCaptcha
-MarkupSafe
 requests
+python-dotenv
+Circleguard
+slider
 Werkzeug
