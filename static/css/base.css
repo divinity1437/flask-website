@@ -6,6 +6,10 @@ body {
     margin-top: 70px;
 }
 
+*{
+    box-sizing: border-box;
+ }
+
 .navbar-ul {
     position: fixed;
     top: 0;
@@ -69,9 +73,9 @@ body {
     border-radius: 12px;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
     padding: 20px;
-    width: 300px;
     text-align: center;
     margin-top: 20px;
+    width: 100%;
 }
 
 .avatar {

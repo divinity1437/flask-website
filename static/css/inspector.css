@@ -1,80 +1,191 @@
+/* Общий стиль */
 body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        form {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .mode-icons
-        {
-            margin: 10px 0;
-        }
-        input[type="text"] {
-            padding: 8px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-        }
-        button, .mode-btn {
-            padding: 8px 16px;
-            background-color: #ff66aa;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 4px;
-        }
-        button:hover, .mode-btn:hover {
-            background-color: #ff3385;
-        }
-        .mode-btn.active {
-            background-color: #ff3385;
-            font-weight: bold;
-        }
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.2);
-            padding: 20px;
-            width: 300px;
-            text-align: center;
-        }
-        .avatar {
-            border-radius: 50%;
-            width: 100px;
-            height: 100px;
-        }
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
 
-        @font-face {
-            font-family: 'osu-mode';
-            src: url('/static/fonts/extra.ttf') format('truetype');
-        }
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    margin-top: 20px;
+    gap: 20px;
+}
 
-        .mode-icon {
-            font-family: 'osu-mode';
-            color: #000000;
-            font-size: 36px; /* можно увеличить */
-            cursor: pointer;
-            margin: 0 8px;
-            transition: transform 0.2s, color 0.2s;
-        }
+.twogirlsonecup {
+    width: 350px;
+}
 
-        .mode-icon:hover {
-            color: #ff66aa;
-            transform: scale(1.2);
-        }
+/* Форма поиска */
+form {
+    margin-bottom: 20px;
+    text-align: center;
+}
 
-        .mode-icon.active {
-            color: #ff3385;
-        }
+input[type="text"] {
+    padding: 8px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    width: 250px;
+    margin-right: 10px;
+}
 
-        .mode-osu::before { content: "\E800"; position: relative; }
-        .mode-catch::before { content: "\E801"; position: relative; }
-        .mode-mania::before { content: "\E802"; position: relative; }
-        .mode-taiko::before { content: "\E803"; position: relative; }
+button,
+.mode-btn {
+    padding: 8px 16px;
+    background-color: #ff66aa;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 4px;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+button:hover,
+.mode-btn:hover {
+    background-color: #ff3385;
+    transform: scale(1.05);
+}
+
+.mode-btn.active {
+    background-color: #ff3385;
+    font-weight: bold;
+}
+
+/* Иконки режимов */
+.mode-icons {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@font-face {
+    font-family: 'osu-mode';
+    src: url('/static/fonts/extra.ttf') format('truetype');
+}
+
+.mode-icon {
+    font-family: 'osu-mode';
+    color: #000;
+    font-size: 36px;
+    cursor: pointer;
+    margin: 0 8px;
+    transition: transform 0.2s, color 0.2s;
+}
+
+.mode-icon:hover {
+    color: #ff66aa;
+    transform: scale(1.2);
+}
+
+.mode-icon.active {
+    color: #ff3385;
+}
+
+.mode-osu::before { content: "\E800"; }
+.mode-catch::before { content: "\E801"; }
+.mode-mania::before { content: "\E802"; }
+.mode-taiko::before { content: "\E803"; }
+
+/* Колонки */
+.row.d-flex {
+    display: flex;
+    flex-wrap: nowrap; /* чтобы блоки не переносились */
+    gap: 20px; /* расстояние между колонками */
+    width: 100%;
+}
+
+/* Левая колонка: карточка игрока */
+.player-column {
+    flex: 0 0 auto;    /* не растягиваться */
+}
+
+/* Правая колонка: топ-5 скооров */
+.scores-column {
+    flex: 1;           /* занимает оставшееся место */
+    min-width: 300px;  /* минимальная ширина для контента */
+    width: 100%;
+}
+
+/* Карточка */
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+}
+
+.card-body {
+    border-radius: 12px;
+    padding: 15px;
+}
+
+/* Аватар и статус */
+.avatar {
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    border: 3px solid #ddd;
+    margin-bottom: 10px;
+    transition: transform 0.3s, border-color 0.3s;
+}
+
+.avatar:hover {
+    transform: scale(1.05);
+    border-color: #ff66aa;
+}
+
+.avatar-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.status-indicator {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.status-indicator.online { background-color: #43b581; }
+.status-indicator.offline { background-color: #747f8d; }
+
+.list-group-item {
+    border: none;
+    padding: 10px 15px;
+    background-size: cover;
+    color: white;
+    text-shadow: 1 1 5px #000;
+}
+.list-group-item + .list-group-item {
+    border-top: 1px solid #dee2e6;
+}
+
+/* Адаптивность */
+@media only screen and (max-width: 768px) {
+    .row.d-flex {
+        flex-direction: column;
+    }
+    .player-column,
+    .scores-column {
+        max-width: 100%;
+        flex: 0 0 100%;
+    }
+    input[type="text"] {
+        width: 100%;
+        margin: 0 0 10px 0;
+    }
+}

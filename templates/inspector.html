@@ -5,39 +5,91 @@
 {% endblock %}
 
 {% block body %}
-<h1>Profile Inspector</h1>
+<div class="container mt-4">
+    <!-- Search form -->
+    <div class="twogirlsonecup">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form id="lookupForm" method="POST" class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" name="username" id="username" class="form-control"
+                            placeholder="Type a username" value="{{ username }}" required>
+                    </div>
 
-<form id="lookupForm" method="POST">
-    <input type="text" name="username" placeholder="Type a username" value="{{ username }}" required>
+                    <div class="col-md-4">
+                        <div class="mode-icons d-flex justify-content-between">
+                            <span class="mode-icon mode-osu {% if mode == 0 %}active{% endif %}" onclick="selectMode(0)"></span>
+                            <span class="mode-icon mode-taiko {% if mode == 1 %}active{% endif %}" onclick="selectMode(1)"></span>
+                            <span class="mode-icon mode-catch {% if mode == 2 %}active{% endif %}" onclick="selectMode(2)"></span>
+                            <span class="mode-icon mode-mania {% if mode == 3 %}active{% endif %}" onclick="selectMode(3)"></span>
+                        </div>
+                        <input type="hidden" name="mode" id="modeInput" value="{{ mode }}">
+                    </div>
 
-    <div class="mode-icons">
-        <span class="mode-icon mode-osu {% if mode == 0 %}active{% endif %}" onclick="selectMode(0)"></span>
-        <span class="mode-icon mode-taiko {% if mode == 1 %}active{% endif %}" onclick="selectMode(1)"></span>
-        <span class="mode-icon mode-catch {% if mode == 2 %}active{% endif %}" onclick="selectMode(2)"></span>
-        <span class="mode-icon mode-mania {% if mode == 3 %}active{% endif %}" onclick="selectMode(3)"></span>
+                    <div class="col-md-2 text-md-end">
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                    </div>
+                </form>
+
+                {% if error %}
+                    <div class="alert alert-danger mt-3">{{ error }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4 player-column">
+            {% if user %}
+            <div class="card user-card shadow-sm mb-4">
+                <div class="card-body text-center text-white" style="text-shadow: 0 0 6px #000;">
+                    <div class="avatar-wrapper">
+                        <img class="avatar mb-3" src="https://a.okayu.click/{{ user.info.id }}" alt="Avatar">
+                        <span class="status-indicator {% if is_online %}online{% else %}offline{% endif %}"></span>
+                    </div>
+                    <h4>{{ user.info.name }}</h4>
+                    <div class="country d-flex justify-content-center align-items-center mb-3">
+                        <img src="https://okayu.click/static/images/flags/{{ user.info.country|upper }}.png" 
+                             alt="country" width="32" class="me-2">
+                    </div>
+                    <hr>
+                    {% set stats_mode = user.stats[mode|string] %}
+                    <p><strong>PP:</strong> {{ stats_mode.pp }}</p>
+                    <p><strong>Rank:</strong> #{{ stats_mode.rank }}</p>
+                    <p><strong>Country Rank:</strong> {{ stats_mode.country_rank }}</p>
+                    <p><strong>Accuracy:</strong> {{ "%.2f"|format(stats_mode.acc) }}%</p>
+                    <p><strong>Playcount:</strong> {{ stats_mode.plays }}</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center text-muted">
+                    <p>Search for a player to view their profile.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
     </div>
 
-    <input type="hidden" name="mode" id="modeInput" value="{{ mode }}">
-    <button type="submit">Search</button>
-</form>
-
-{% if error %}
-<p style="color:red;">{{ error }}</p>
-{% endif %}
-
-{% if user %}
-<div class="card">
-    <img class="avatar" src="https://a.ppy.sh/{{ user['user_id'] }}" alt="Avatar">
-    <h2>{{ user['username'] }}</h2>
-    <p>Country: 
-        <img src="https://okayu.click/static/images/flags/{{ user['country'] }}.png" alt="country-code" width="32px">
-    </p>
-    <p>PP: {{ user['pp_raw'] }}</p>
-    <p>Rank: #{{ user['pp_rank'] }}</p>
-    <p>Acc: {{ "%.2f"|format(user['accuracy']|float) }}%</p>
-    <p>Playcount: {{ user['playcount'] }}</p>
+    <!-- Player card and top scores -->
+    <div class="row d-flex justify-content-between">
+        <!-- Right column: top 5 scores -->
+        <div class="col-md-7 scores-column">
+            {% if top_scores %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-white" style="text-shadow: 0 0 4px #000;">
+                    <ul class="list-group">
+                        {% for score in top_scores %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center" style="background-image: url('https://assets.ppy.sh/beatmaps/{{ score.beatmap.set_id }}/covers/cover.jpg');">
+                            <span>{{ score.beatmap.artist }} - {{ score.beatmap.title }} [{{ score.beatmap.version }}]</span>
+                            <span>{{ "%.2f"|format(score.pp) }}pp</span> +<span>{{ score.mods_readable }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
-{% endif %}
 
 <script>
 function selectMode(mode) {
