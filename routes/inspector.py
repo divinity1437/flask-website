@@ -4,26 +4,131 @@ from flask import Blueprint, render_template, request, session
 inspector_bp = Blueprint('inspector', __name__, template_folder='../templates')
 
 MODES = {
-    0: "osu!",
-    1: "Taiko",
-    2: "Catch",
-    3: "Mania",
+    0: "osu",
+    1: "taiko",
+    2: "fruits",
+    3: "mania",
 }
 
-def get_osu_user_bancho(username, mode=0):
-    """Get player info from official osu! API v2"""
-    # Требуется access_token, но пока используем публичное API
-    # Временно используем https://osu.ppy.sh/api/get_user?k=API_KEY
-    # Для полной интеграции нужно добавить OAuth scope 'public'
-    url = f"https://osu.ppy.sh/api/v2/users/{username}/{MODES.get(mode, 'osu')}"
-    try:
+# Глобальная переменная для хранения токена Bancho API
+bancho_token = None
+token_expiry = 0
+
+def get_bancho_token():
+    """Получает или обновляет access-токен для Bancho API"""
+    global bancho_token, token_expiry
+    import time, os
+    
+    # Если токен ещё живой (обычно живёт 1-2 часа)
+    if bancho_token and time.time() < token_expiry:
+        return bancho_token
+    
+    # Получаем новый токен
+    client_id = os.environ.get("OSU_CLIENT_ID")
+    client_secret = os.environ.get("OSU_CLIENT_SECRET")
+    
+    if not client_id or not client_secret:
+        print("Bancho API: missing credentials")
         return None
+    
+    url = "https://osu.ppy.sh/oauth/token"
+    data = {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "grant_type": "client_credentials",
+        "scope": "public"
+    }
+    
+    try:
+        response = requests.post(url, data=data)
+        if response.status_code == 200:
+            token_data = response.json()
+            bancho_token = token_data.get("access_token")
+            # Токен живёт ~2 часа, обновим через 1.5
+            token_expiry = time.time() + 5400
+            return bancho_token
+        else:
+            print(f"Token error: {response.status_code} - {response.text}")
+            return None
     except Exception as e:
-        print(f"Bancho API error: {e}")
+        print(f"Token request failed: {e}")
         return None
 
+def get_osu_user_bancho(username, mode=0):
+    """Get player info from official osu! API v2 (Bancho)"""
+    token = get_bancho_token()
+    if not token:
+        return None
+    
+    mode_str = MODES.get(mode, "osu")
+    # Важно: для поиска по username используем @ в начале (новое требование API)
+    # https://osu.ppy.sh/docs/index.html#get-user
+    url = f"https://osu.ppy.sh/api/v2/users/@{username}/{mode_str}"
+    
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+    
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            # Преобразуем ответ Bancho в формат, совместимый с твоим шаблоном
+            return transform_bancho_data(data, mode)
+        elif response.status_code == 404:
+            print(f"User '{username}' not found on Bancho")
+            return None
+        else:
+            print(f"Bancho API error: {response.status_code} - {response.text}")
+            return None
+    except Exception as e:
+        print(f"Bancho API request failed: {e}")
+        return None
+
+def transform_bancho_data(bancho_user, mode):
+    """Преобразует данные из Bancho API в формат, который ожидает твой шаблон"""
+    stats = bancho_user.get("statistics", {})
+    mode_stats = {}  # Нужный формат для твоего шаблона
+    
+    # Извлекаем данные для конкретного режима
+    mode_stats = {
+        "pp": round(stats.get("pp", 0)),
+        "rank": stats.get("global_rank", 0),
+        "country_rank": stats.get("country_rank", 0),
+        "acc": round(stats.get("hit_accuracy", 0), 2),
+        "plays": stats.get("play_count", 0),
+        "total_score": stats.get("total_score", 0),
+        "total_hits": stats.get("total_hits", 0),
+        "level": int(stats.get("level", {}).get("current", 1)) if stats.get("level") else 1,
+        "counts_ss": stats.get("grade_counts", {}).get("ss", 0),
+        "counts_s": stats.get("grade_counts", {}).get("s", 0),
+        "counts_a": stats.get("grade_counts", {}).get("a", 0),
+    }
+    
+    # Рассчитываем прогресс PP (примерная формула)
+    current_pp = mode_stats["pp"]
+    rank = mode_stats["rank"]
+    if rank and rank < 10000:
+        next_threshold = ((rank // 1000) + 1) * 1000
+        progress = min(100, (current_pp % 1000) / 10)
+    else:
+        progress = 50
+    mode_stats["pp_progress"] = progress
+    
+    return {
+        "info": {
+            "id": bancho_user.get("id"),
+            "name": bancho_user.get("username"),
+            "country": bancho_user.get("country", {}).get("code", ""),
+            "country_code": bancho_user.get("country", {}).get("code", ""),
+        },
+        "stats": {str(mode): mode_stats}
+    }
+
 def get_osu_user_okayu(username):
-    """Get player info from Okayu API"""
+    """Get player info from Okayu API (без изменений)"""
     url = f"https://api.okayu.click/v1/get_player_info?name={username}&scope=all"
     try:
         response = requests.get(url, timeout=5)
@@ -83,8 +188,49 @@ def get_top_scores_okayu(username, limit=5):
         print("Error fetching top scores:", e)
     return []
 
+def get_top_scores_bancho(username, limit=5):
+    """Get top scores from Bancho API"""
+    token = get_bancho_token()
+    if not token:
+        return []
+    
+    # Сначала получаем ID пользователя
+    mode_str = "osu"  # базовый режим
+    url = f"https://osu.ppy.sh/api/v2/users/@{username}/{mode_str}"
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    try:
+        # Получаем ID пользователя
+        user_resp = requests.get(url, headers=headers, timeout=10)
+        if user_resp.status_code != 200:
+            return []
+        
+        user_id = user_resp.json().get("id")
+        if not user_id:
+            return []
+        
+        # Получаем топ скоры
+        scores_url = f"https://osu.ppy.sh/api/v2/users/{user_id}/scores/best"
+        params = {"limit": limit, "mode": "osu"}
+        
+        scores_resp = requests.get(scores_url, headers=headers, params=params, timeout=10)
+        if scores_resp.status_code == 200:
+            scores = scores_resp.json()
+            for score in scores:
+                # Преобразуем моды
+                mods_list = score.get("mods", [])
+                score["mods_readable"] = "+".join(mods_list) if mods_list else "NM"
+                # Добавляем beatmapset_id для фона
+                if "beatmap" in score:
+                    score["beatmapset_id"] = score["beatmap"].get("beatmapset_id", 0)
+            return scores
+    except Exception as e:
+        print("Bancho top scores error:", e)
+    
+    return []
+
 def mods_to_readable(mods_bitmask):
-    """Convert mods bitmask to readable string"""
+    """Convert mods bitmask to readable string (для Okayu API)"""
     mods_map = {
         1 << 0: "NF", 1 << 1: "EZ", 1 << 2: "TD", 1 << 3: "HD",
         1 << 4: "HR", 1 << 5: "SD", 1 << 6: "DT", 1 << 7: "RX",
@@ -92,7 +238,6 @@ def mods_to_readable(mods_bitmask):
         1 << 12: "SO", 1 << 13: "AP", 1 << 14: "PF", 1 << 15: "4K",
         1 << 16: "5K", 1 << 17: "6K", 1 << 18: "7K", 1 << 19: "8K",
         1 << 20: "FI", 1 << 21: "RD", 1 << 22: "LM", 1 << 23: "CN",
-        1 << 24: "TP", 1 << 25: "KZ"
     }
     
     readable = []
@@ -113,18 +258,9 @@ def inspector_index():
     is_online = False
     current_action = None
     top_scores = []
-    server = request.args.get("server", request.form.get("server", "okayu"))  # okayu или bancho
+    server = request.form.get("server", request.args.get("server", "okayu"))
 
-    if request.method == "GET" and request.args.get("username"):
-        username = request.args.get("username")
-        server = "bancho"  # Авторизованные пользователи из Bancho
-        mode = int(request.args.get("mode", 0))
-        
-        user_data = get_osu_user_bancho(username, mode)
-        if not user_data:
-            error = f"Player '{username}' not found on Bancho"
-    
-    elif request.method == "POST":
+    if request.method == "POST":
         username = (request.form.get("username") or "").strip()
         try:
             mode = int(request.form.get("mode", 0))
@@ -140,6 +276,10 @@ def inspector_index():
                     top_scores = get_top_scores_okayu(username)
             elif server == "bancho":
                 user_data = get_osu_user_bancho(username, mode)
+                if user_data:
+                    # Показываем статус "оффлайн" для Bancho (API не даёт онлайн-статус)
+                    is_online = False
+                    top_scores = get_top_scores_bancho(username, 5)
             
             if not user_data:
                 error = f"Player '{username}' not found on {server.upper()} server."
@@ -148,6 +288,7 @@ def inspector_index():
 
     current_mode_name = MODES.get(mode, "osu!")
 
+    # Подготовка статистики для текущего режима
     user_stats = None
     if user_data and "stats" in user_data:
         user_stats = user_data["stats"].get(str(mode), user_data["stats"].get(mode, {}))
