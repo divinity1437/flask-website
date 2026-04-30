@@ -1,6 +1,6 @@
 import os
-from flask import Flask, render_template
 from dotenv import load_dotenv
+from flask import Flask, render_template
 from routes.home import home_bp
 from routes.inspector import inspector_bp
 from routes.circleguard import circleguard_bp

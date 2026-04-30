@@ -124,9 +124,9 @@
             {% if top_scores %}
             <div class="scores-list">
                 {% for score in top_scores[:5] %}
-                <div class="score-item" style="background-image: url('https://assets.ppy.sh/beatmaps/{{ score.beatmapset_id }}/covers/cover.jpg');">
+                <div class="score-item" style="background-image: url('https://assets.ppy.sh/beatmaps/{{ score.beatmap.set_id }}/covers/cover.jpg');">
                     <div class="score-info">
-                        <div class="score-map">{{ score.beatmapset.title }}</div>
+                        <div class="score-map">{{ score.beatmap.artist }} - {{ score.beatmap.title }}</div>
                         <div class="score-diff">{{ score.beatmap.version }}</div>
                     </div>
                     <div class="score-stats">

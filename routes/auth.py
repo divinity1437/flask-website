@@ -2,6 +2,9 @@ import os
 import requests
 from flask import Blueprint, redirect, url_for, session, request
 from urllib.parse import urlencode
+from dotenv import load_dotenv
+
+load_dotenv()
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -12,7 +15,7 @@ REDIRECT_URI = os.environ.get("OSU_REDIRECT_URI", "http://localhost:5120/auth/ca
 @auth_bp.route('/auth/login')
 def login():
     if not CLIENT_ID:
-        return "OAuth not configured: OSU_CLIENT_ID is missing", 500
+        return "OAuth not configured: OSU_CLIENT_ID is missing. Check your .env file.", 500
     
     params = {
         'client_id': CLIENT_ID,
@@ -29,7 +32,9 @@ def callback():
     if not code:
         return "Authorization failed (no code)", 400
 
-    # Получаем токен
+    if not CLIENT_ID or not CLIENT_SECRET:
+        return "OAuth not configured properly", 500
+
     token_url = "https://osu.ppy.sh/oauth/token"
     data = {
         'client_id': CLIENT_ID,
