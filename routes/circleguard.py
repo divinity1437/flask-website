@@ -71,9 +71,11 @@ def analyze_replay(file_path):
     replay = ReplayPath(file_path)
     cg.load(replay)
     
-    # Получаем frametimes для графика
     frametimes_raw = cg.frametimes(replay)
-    frametimes_list = [float(x) for x in frametimes_raw] if frametimes_raw else []
+    
+    frametimes_list = []
+    if frametimes_raw is not None and len(frametimes_raw) > 0:
+        frametimes_list = [float(x) for x in frametimes_raw]
     
     # Статистика по frametimes
     if frametimes_list:
