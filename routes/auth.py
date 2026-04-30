@@ -6,7 +6,7 @@ auth_bp = Blueprint('auth', __name__)
 
 CLIENT_ID = os.environ.get("OSU_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("OSU_CLIENT_SECRET")
-REDIRECT_URI = os.environ.get("OSU_REDIRECT_URI", "http://localhost:5000/auth/callback")
+REDIRECT_URI = os.environ.get("OSU_REDIRECT_URI", "http://localhost:5120/auth/callback")
 
 @auth_bp.route('/auth/login')
 def login():
