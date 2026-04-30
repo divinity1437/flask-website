@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+print(f"Using CLIENT_ID: {CLIENT_ID}")
+print(f"Using REDIRECT_URI: {REDIRECT_URI}")
+
 auth_bp = Blueprint('auth', __name__)
 
 CLIENT_ID = os.environ.get("OSU_CLIENT_ID")
