@@ -41,6 +41,19 @@
                         <input type="hidden" name="mode" id="modeInput" value="{{ mode }}">
                     </div>
 
+                    <div class="server-selector">
+                        <label>Server</label>
+                        <div class="server-buttons">
+                            <button type="button" class="server-btn {% if server == 'okayu' %}active{% endif %}" data-server="okayu">
+                                <img src="https://okayu.click/static/favicon.ico" width="20"> Okayu
+                            </button>
+                            <button type="button" class="server-btn {% if server == 'bancho' %}active{% endif %}" data-server="bancho">
+                                <img src="https://osu.ppy.sh/favicon.ico" width="20"> Bancho
+                            </button>
+                        </div>
+                        <input type="hidden" name="server" id="serverInput" value="{{ server }}">
+                    </div>
+
                     <button type="submit" class="search-button">Search</button>
                 </div>
 
@@ -155,6 +168,27 @@
 </div>
 
 <script>
+document.querySelectorAll('.server-btn').forEach(btn => {
+    btn.onclick = () => {
+        document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('serverInput').value = btn.dataset.server;
+    };
+});
+
+function selectMode(mode) {
+    document.getElementById('modeInput').value = mode;
+    document.getElementById('lookupForm').submit();
+}
+
+function fillMyProfile() {
+    document.getElementById('username').value = "{{ session_user.username if session_user else '' }}";
+    document.getElementById('serverInput').value = "bancho";
+    document.getElementById('lookupForm').submit();
+}
+</script>
+
+<script>
 function selectMode(mode) {
     document.getElementById('modeInput').value = mode;
     document.getElementById('lookupForm').submit();
@@ -165,7 +199,6 @@ function fillMyProfile() {
     document.getElementById('lookupForm').submit();
 }
 
-// Режимы через data-атрибуты
 document.querySelectorAll('.mode-icon').forEach(el => {
     if (!el.getAttribute('data-mode')) {
         el.setAttribute('data-mode', el.classList.contains('mode-osu') ? '0' :

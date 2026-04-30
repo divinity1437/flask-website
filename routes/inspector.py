@@ -1,5 +1,5 @@
 import requests
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, session
 
 inspector_bp = Blueprint('inspector', __name__, template_folder='../templates')
 
@@ -10,7 +10,19 @@ MODES = {
     3: "Mania",
 }
 
-def get_osu_user(username):
+def get_osu_user_bancho(username, mode=0):
+    """Get player info from official osu! API v2"""
+    # Требуется access_token, но пока используем публичное API
+    # Временно используем https://osu.ppy.sh/api/get_user?k=API_KEY
+    # Для полной интеграции нужно добавить OAuth scope 'public'
+    url = f"https://osu.ppy.sh/api/v2/users/{username}/{MODES.get(mode, 'osu')}"
+    try:
+        return None
+    except Exception as e:
+        print(f"Bancho API error: {e}")
+        return None
+
+def get_osu_user_okayu(username):
     """Get player info from Okayu API"""
     url = f"https://api.okayu.click/v1/get_player_info?name={username}&scope=all"
     try:
@@ -19,25 +31,22 @@ def get_osu_user(username):
             data = response.json()
             if data.get("status") == "success" and "player" in data:
                 player = data["player"]
-                # Добавляем level в статистику каждого режима, если его нет
                 if "stats" in player:
                     for mode_key, stats in player["stats"].items():
                         if "level" not in stats or stats["level"] is None:
-                            # Рассчитываем примерный уровень на основе total_score
                             total_score = stats.get("total_score", 0)
                             if total_score > 0:
-                                # Формула уровня в osu! (приблизительная)
                                 stats["level"] = int(total_score ** 0.4 * 0.2)
                             else:
                                 stats["level"] = 1
                 return player
         return None
     except Exception as e:
-        print("Request failed:", e)
+        print("Okayu API error:", e)
         return None
 
-def get_player_status(username):
-    """Get player online status"""
+def get_player_status_okayu(username):
+    """Get player online status from Okayu API"""
     url = f"https://api.okayu.click/v1/get_player_status?name={username}"
     try:
         response = requests.get(url, timeout=5)
@@ -55,24 +64,20 @@ def get_player_status(username):
         return is_online, last_seen
 
     except Exception as e:
-        print(f"Ошибка при запросе статуса игрока: {e}")
+        print(f"Error fetching player status: {e}")
         return False, None
 
-def get_top_scores(username, limit=5):
-    """Get top scores for player"""
+def get_top_scores_okayu(username, limit=5):
+    """Get top scores from Okayu API"""
     url = f"https://api.okayu.click/v1/get_player_scores?name={username}&scope=best&limit={limit}"
     try:
         resp = requests.get(url, timeout=5)
         data = resp.json()
         if data.get("status") == "success":
             scores = data.get("scores", [])
-            # Добавляем readable моды для каждого скора
             for score in scores:
                 if "mods" in score:
                     score["mods_readable"] = mods_to_readable(score.get("mods", 0))
-                # Добавляем beatmapset_id для фона
-                if "beatmap" in score:
-                    score["beatmapset_id"] = score["beatmap"].get("beatmapset_id", 0)
             return scores
     except Exception as e:
         print("Error fetching top scores:", e)
@@ -87,8 +92,7 @@ def mods_to_readable(mods_bitmask):
         1 << 12: "SO", 1 << 13: "AP", 1 << 14: "PF", 1 << 15: "4K",
         1 << 16: "5K", 1 << 17: "6K", 1 << 18: "7K", 1 << 19: "8K",
         1 << 20: "FI", 1 << 21: "RD", 1 << 22: "LM", 1 << 23: "CN",
-        1 << 24: "TP", 1 << 25: "KZ", 1 << 26: "1K", 1 << 27: "3K",
-        1 << 28: "2K", 1 << 29: "V2", 1 << 30: "MR"
+        1 << 24: "TP", 1 << 25: "KZ"
     }
     
     readable = []
@@ -109,21 +113,36 @@ def inspector_index():
     is_online = False
     current_action = None
     top_scores = []
+    server = request.args.get("server", request.form.get("server", "okayu"))  # okayu или bancho
 
-    if request.method == "POST":
+    if request.method == "GET" and request.args.get("username"):
+        username = request.args.get("username")
+        server = "bancho"  # Авторизованные пользователи из Bancho
+        mode = int(request.args.get("mode", 0))
+        
+        user_data = get_osu_user_bancho(username, mode)
+        if not user_data:
+            error = f"Player '{username}' not found on Bancho"
+    
+    elif request.method == "POST":
         username = (request.form.get("username") or "").strip()
         try:
             mode = int(request.form.get("mode", 0))
         except ValueError:
             mode = 0
+        server = request.form.get("server", "okayu")
 
         if username:
-            user_data = get_osu_user(username)
+            if server == "okayu":
+                user_data = get_osu_user_okayu(username)
+                if user_data:
+                    is_online, current_action = get_player_status_okayu(username)
+                    top_scores = get_top_scores_okayu(username)
+            elif server == "bancho":
+                user_data = get_osu_user_bancho(username, mode)
+            
             if not user_data:
-                error = f"Player '{username}' not found or API error."
-            else:
-                is_online, current_action = get_player_status(username)
-                top_scores = get_top_scores(username)
+                error = f"Player '{username}' not found on {server.upper()} server."
         else:
             error = "Please enter a username."
 
@@ -143,5 +162,7 @@ def inspector_index():
         current_mode=current_mode_name,
         is_online=is_online,
         current_action=current_action,
-        top_scores=top_scores
+        top_scores=top_scores,
+        server=server,
+        session_user=session.get('user')
     )

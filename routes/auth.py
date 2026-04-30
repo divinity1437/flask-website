@@ -1,6 +1,6 @@
 import os
 import requests
-from flask import Blueprint, redirect, url_for, session, request
+from flask import Blueprint, redirect, url_for, session, request, render_template
 from urllib.parse import urlencode
 from dotenv import load_dotenv
 
@@ -10,12 +10,12 @@ auth_bp = Blueprint('auth', __name__)
 
 CLIENT_ID = os.environ.get("OSU_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("OSU_CLIENT_SECRET")
-REDIRECT_URI = os.environ.get("OSU_REDIRECT_URI", "http://localhost:5120/auth/callback")
+REDIRECT_URI = os.environ.get("OSU_REDIRECT_URI", "https://okayu.click/auth/callback")
 
 @auth_bp.route('/auth/login')
 def login():
     if not CLIENT_ID:
-        return "OAuth not configured: OSU_CLIENT_ID is missing. Check your .env file.", 500
+        return "OAuth not configured: OSU_CLIENT_ID is missing", 500
     
     params = {
         'client_id': CLIENT_ID,
@@ -62,12 +62,13 @@ def callback():
             'id': user_data['id'],
             'username': user_data['username'],
             'avatar_url': user_data['avatar_url'],
-            'country_code': user_data['country']['code']
+            'country_code': user_data['country']['code'],
+            'server': 'bancho'  #标记来自Bancho
         }
     else:
         return f"Failed to get user data: {user_response.text}", 400
 
-    return redirect(url_for('inspector.inspector_index'))
+    return redirect(url_for('inspector.inspector_index', username=session['user']['username']))
 
 @auth_bp.route('/auth/logout')
 def logout():
