@@ -5,90 +5,153 @@
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <!-- Search form -->
-    <div class="twogirlsonecup">
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <form id="lookupForm" method="POST" class="row g-3 align-items-end">
-                    <div class="col-md-6">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" name="username" id="username" class="form-control"
-                            placeholder="Type a username" value="{{ username }}" required>
+<div class="container">
+    <div class="auth-bar">
+        {% if session.user %}
+        <div class="user-menu">
+            <img src="{{ session.user.avatar_url }}" alt="Avatar" class="user-avatar-sm">
+            <span class="username">{{ session.user.username }}</span>
+            <a href="/auth/logout" class="logout-btn">Logout</a>
+        </div>
+        {% else %}
+        <a href="/auth/login" class="login-btn">
+            🔑 Login with osu!
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="search-container">
+        <div class="search-card">
+            <form id="lookupForm" method="POST" class="search-form">
+                <div class="search-wrapper">
+                    <div class="search-input-group">
+                        <label>Username or ID</label>
+                        <input type="text" name="username" id="username" class="search-input"
+                               placeholder="Type a username or ID" value="{{ username }}" required>
                     </div>
 
-                    <div class="col-md-4">
-                        <div class="mode-icons d-flex justify-content-between">
-                            <span class="mode-icon mode-osu {% if mode == 0 %}active{% endif %}" onclick="selectMode(0)"></span>
-                            <span class="mode-icon mode-taiko {% if mode == 1 %}active{% endif %}" onclick="selectMode(1)"></span>
-                            <span class="mode-icon mode-catch {% if mode == 2 %}active{% endif %}" onclick="selectMode(2)"></span>
-                            <span class="mode-icon mode-mania {% if mode == 3 %}active{% endif %}" onclick="selectMode(3)"></span>
+                    <div class="mode-selector">
+                        <label>Game Mode</label>
+                        <div class="mode-icons">
+                            <span class="mode-icon mode-osu {% if mode == 0 %}active{% endif %}" data-mode="0"></span>
+                            <span class="mode-icon mode-taiko {% if mode == 1 %}active{% endif %}" data-mode="1"></span>
+                            <span class="mode-icon mode-catch {% if mode == 2 %}active{% endif %}" data-mode="2"></span>
+                            <span class="mode-icon mode-mania {% if mode == 3 %}active{% endif %}" data-mode="3"></span>
                         </div>
                         <input type="hidden" name="mode" id="modeInput" value="{{ mode }}">
                     </div>
 
-                    <div class="col-md-2 text-md-end">
-                        <button type="submit" class="btn btn-primary w-100">Search</button>
-                    </div>
-                </form>
+                    <button type="submit" class="search-button">Search</button>
+                </div>
 
-                {% if error %}
-                    <div class="alert alert-danger mt-3">{{ error }}</div>
+                {% if session.user %}
+                <div class="my-profile-btn-container">
+                    <button type="button" class="my-profile-btn" onclick="fillMyProfile()">
+                        ⭐ Show my profile
+                    </button>
+                </div>
                 {% endif %}
+            </form>
+
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if user %}
+    <div class="profile-grid">
+        <div class="profile-card">
+            <div class="profile-banner"></div>
+            <div class="profile-avatar">
+                <div class="avatar-wrapper">
+                    <img src="https://a.okayu.click/{{ user.info.id }}" alt="Avatar">
+                    <span class="status-badge {% if is_online %}online{% else %}offline{% endif %}"></span>
+                </div>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">{{ user.info.name }}</h2>
+                <div class="country-badge">
+                    <img src="https://okayu.click/static/images/flags/{{ user.info.country|upper }}.png" alt="Country">
+                    <span>{{ user.info.country_code }}</span>
+                </div>
+
+                <div class="stats-grid">
+                    {% set stats_mode = user.stats[mode|string] %}
+                    <div class="stat-item">
+                        <div class="stat-value">{{ stats_mode.pp|int }}</div>
+                        <div class="stat-label">PP</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">#{{ stats_mode.rank }}</div>
+                        <div class="stat-label">Global Rank</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ "%.2f"|format(stats_mode.acc) }}%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ stats_mode.plays|int }}</div>
+                        <div class="stat-label">Playcount</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ stats_mode.level|int }}</div>
+                        <div class="stat-label">Level</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ stats_mode.total_hits|int }}</div>
+                        <div class="stat-label">Total Hits</div>
+                    </div>
+                </div>
+
+                <div class="rank-chart">
+                    <div class="rank-progress">
+                        <div class="rank-fill" style="width: {{ stats_mode.pp_progress }}%"></div>
+                    </div>
+                    <div class="rank-stats">
+                        <span>SS: {{ stats_mode.counts_ss }}</span>
+                        <span>S: {{ stats_mode.counts_s }}</span>
+                        <span>A: {{ stats_mode.counts_a }}</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-4 player-column">
-            {% if user %}
-            <div class="card user-card shadow-sm mb-4">
-                <div class="card-body text-center text-white" style="text-shadow: 0 0 6px #000;">
-                    <div class="avatar-wrapper">
-                        <img class="avatar mb-3" src="https://a.okayu.click/{{ user.info.id }}" alt="Avatar">
-                        <span class="status-indicator {% if is_online %}online{% else %}offline{% endif %}"></span>
+
+        <div class="scores-card">
+            <div class="scores-header">
+                <h3>🎵 Top 5 Scores</h3>
+            </div>
+            {% if top_scores %}
+            <div class="scores-list">
+                {% for score in top_scores[:5] %}
+                <div class="score-item" style="background-image: url('https://assets.ppy.sh/beatmaps/{{ score.beatmapset_id }}/covers/cover.jpg');">
+                    <div class="score-info">
+                        <div class="score-map">{{ score.beatmapset.title }}</div>
+                        <div class="score-diff">{{ score.beatmap.version }}</div>
                     </div>
-                    <h4>{{ user.info.name }}</h4>
-                    <div class="country d-flex justify-content-center align-items-center mb-3">
-                        <img src="https://okayu.click/static/images/flags/{{ user.info.country|upper }}.png" 
-                             alt="country" width="32" class="me-2">
+                    <div class="score-stats">
+                        <span class="score-pp">{{ "%.2f"|format(score.pp) }}pp</span>
+                        {% if score.mods %}
+                        <span class="score-mods">{{ score.mods_readable }}</span>
+                        {% endif %}
                     </div>
-                    <hr>
-                    {% set stats_mode = user.stats[mode|string] %}
-                    <p><strong>PP:</strong> {{ stats_mode.pp }}</p>
-                    <p><strong>Rank:</strong> #{{ stats_mode.rank }}</p>
-                    <p><strong>Country Rank:</strong> {{ stats_mode.country_rank }}</p>
-                    <p><strong>Accuracy:</strong> {{ "%.2f"|format(stats_mode.acc) }}%</p>
-                    <p><strong>Playcount:</strong> {{ stats_mode.plays }}</p>
                 </div>
+                {% endfor %}
             </div>
             {% else %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-body text-center text-muted">
-                    <p>Search for a player to view their profile.</p>
-                </div>
+            <div class="empty-state">
+                No top scores available
             </div>
             {% endif %}
         </div>
     </div>
-
-    <!-- Player card and top scores -->
-    <div class="row d-flex justify-content-between">
-        <!-- Right column: top 5 scores -->
-        <div class="col-md-7 scores-column">
-            {% if top_scores %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-body text-white" style="text-shadow: 0 0 4px #000;">
-                    <ul class="list-group">
-                        {% for score in top_scores %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center" style="background-image: url('https://assets.ppy.sh/beatmaps/{{ score.beatmap.set_id }}/covers/cover.jpg');">
-                            <span>{{ score.beatmap.artist }} - {{ score.beatmap.title }} [{{ score.beatmap.version }}]</span>
-                            <span>{{ "%.2f"|format(score.pp) }}pp</span> +<span>{{ score.mods_readable }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-            {% endif %}
-        </div>
+    {% else %}
+    <div class="empty-profile">
+        <div class="empty-icon">🎮</div>
+        <h3>Search for a player</h3>
+        <p>Enter a username or ID above to view their profile</p>
     </div>
+    {% endif %}
 </div>
 
 <script>
@@ -96,5 +159,20 @@ function selectMode(mode) {
     document.getElementById('modeInput').value = mode;
     document.getElementById('lookupForm').submit();
 }
+
+function fillMyProfile() {
+    document.getElementById('username').value = "{{ session.user.username if session.user else '' }}";
+    document.getElementById('lookupForm').submit();
+}
+
+// Режимы через data-атрибуты
+document.querySelectorAll('.mode-icon').forEach(el => {
+    if (!el.getAttribute('data-mode')) {
+        el.setAttribute('data-mode', el.classList.contains('mode-osu') ? '0' :
+                                       el.classList.contains('mode-taiko') ? '1' :
+                                       el.classList.contains('mode-catch') ? '2' : '3');
+    }
+    el.onclick = () => selectMode(el.getAttribute('data-mode'));
+});
 </script>
 {% endblock %}

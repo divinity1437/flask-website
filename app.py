@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from routes.home import home_bp
 from routes.inspector import inspector_bp
 from routes.circleguard import circleguard_bp
+from routes.auth import auth_bp
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
@@ -13,6 +14,8 @@ app = Flask(__name__)
 app.register_blueprint(home_bp)
 app.register_blueprint(inspector_bp)
 app.register_blueprint(circleguard_bp)
+app.register_blueprint(auth_bp)
+app.secret_key = os.environ.get("SECRET_KEY", "supersecretkey")
 
 @app.context_processor
 def inject_common():
