@@ -9,6 +9,8 @@ from routes.auth import auth_bp
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
+print("OSU_CLIENT_ID:", os.environ.get("OSU_CLIENT_ID"))
+
 app = Flask(__name__)
 
 app.register_blueprint(home_bp)

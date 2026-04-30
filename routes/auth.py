@@ -1,6 +1,7 @@
 import os
 import requests
 from flask import Blueprint, redirect, url_for, session, request
+from urllib.parse import urlencode
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -10,7 +11,9 @@ REDIRECT_URI = os.environ.get("OSU_REDIRECT_URI", "http://localhost:5120/auth/ca
 
 @auth_bp.route('/auth/login')
 def login():
-    from urllib.parse import urlencode
+    if not CLIENT_ID:
+        return "OAuth not configured: OSU_CLIENT_ID is missing", 500
+    
     params = {
         'client_id': CLIENT_ID,
         'redirect_uri': REDIRECT_URI,
