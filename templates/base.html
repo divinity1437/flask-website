@@ -13,6 +13,10 @@
 
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename = 'css/base.css') }}">
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
     {% block head %}
     {% endblock %}
 </head>
@@ -23,7 +27,7 @@
         <li><a class="navbar-ref" href="https://{{ common.domain }}/u/3">osu!</a></li>
         <li><a class="navbar-ref" href="/circleguard">Circleguard web</a></li>
         <li><a class="navbar-ref" href="/inspector">Profile Inspector</a></li>
-	<li><a class="navbar-ref" href="https://boosty.to/owouser/">Boosty</a></li>
+	<li><a class="navbar-ref" href="https://lk.vicilink.icu">my VPS</a></li>
     </ul>
 </div>
 {% block body %}
