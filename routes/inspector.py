@@ -188,9 +188,13 @@ def get_player_status_okayu(username):
         print(f"Error fetching player status: {e}")
         return False, None
 
-def get_top_scores_okayu(username, limit=5):
-    """Get top scores from Okayu API"""
-    url = f"https://api.okayu.click/v1/get_player_scores?name={username}&scope=best&limit={limit}"
+def get_top_scores_okayu(username, mode=0, limit=5):
+    """Get top scores from Okayu API with mode support"""
+    # Маппинг режимов для Okayu API
+    mode_map = {0: "osu", 1: "taiko", 2: "catch", 3: "mania"}
+    mode_str = mode_map.get(mode, "osu")
+    
+    url = f"https://api.okayu.click/v1/get_player_scores?name={username}&scope=best&limit={limit}&mode={mode_str}"
     try:
         resp = requests.get(url, timeout=5)
         data = resp.json()
@@ -201,14 +205,18 @@ def get_top_scores_okayu(username, limit=5):
                     score["mods_readable"] = mods_to_readable(score.get("mods", 0))
             return scores
     except Exception as e:
-        print("Error fetching top scores:", e)
+        print("Error fetching top scores from Okayu:", e)
     return []
 
-def get_top_scores_bancho(username, limit=5):
-    """Get top scores from Bancho API"""
+def get_top_scores_bancho(username, mode=0, limit=5):
+    """Get top scores from Bancho API with mode support"""
     token = get_bancho_token()
     if not token:
         return []
+    
+    # Маппинг режимов для Bancho API
+    mode_map = {0: "osu", 1: "taiko", 2: "fruits", 3: "mania"}
+    mode_str = mode_map.get(mode, "osu")
     
     headers = {"Authorization": f"Bearer {token}"}
     
@@ -223,9 +231,9 @@ def get_top_scores_bancho(username, limit=5):
         if not user_id:
             return []
         
-        # Получаем топ скоры
+        # Получаем топ скоры для выбранного режима
         scores_url = f"https://osu.ppy.sh/api/v2/users/{user_id}/scores/best"
-        params = {"limit": limit, "mode": "osu"}
+        params = {"limit": limit, "mode": mode_str}
         
         scores_resp = requests.get(scores_url, headers=headers, params=params, timeout=10)
         if scores_resp.status_code == 200:
@@ -237,7 +245,7 @@ def get_top_scores_bancho(username, limit=5):
                     score["beatmapset_id"] = score["beatmap"].get("beatmapset_id", 0)
             return scores
     except Exception as e:
-        print("Bancho top scores error:", e)
+        print(f"Bancho top scores error for mode {mode_str}: {e}")
     
     return []
 
@@ -285,12 +293,14 @@ def inspector_index():
                 user_data = get_osu_user_okayu(username)
                 if user_data:
                     is_online, current_action = get_player_status_okayu(username)
-                    top_scores = get_top_scores_okayu(username)
+                    # ПЕРЕДАЁМ mode В ФУНКЦИЮ
+                    top_scores = get_top_scores_okayu(username, mode, 5)
             elif server == "bancho":
                 user_data = get_osu_user_bancho(username, mode)
                 if user_data:
                     is_online = False
-                    top_scores = get_top_scores_bancho(username, 5)
+                    # ПЕРЕДАЁМ mode В ФУНКЦИЮ
+                    top_scores = get_top_scores_bancho(username, mode, 5)
             
             if not user_data:
                 error = f"Player '{username}' not found on {server.upper()} server."
