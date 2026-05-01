@@ -295,7 +295,6 @@ function fillMyProfile() {
     document.getElementById('lookupForm').submit();
 }
 
-// Режимы через data-атрибуты
 document.querySelectorAll('.mode-icon').forEach(el => {
     if (!el.getAttribute('data-mode')) {
         const modeMap = {'mode-osu': '0', 'mode-taiko': '1', 'mode-catch': '2', 'mode-mania': '3'};
@@ -326,7 +325,6 @@ document.querySelectorAll('.server-btn').forEach(btn => {
     };
 });
 
-// Submode dropdown
 const submodeBtn = document.getElementById('submodeBtn');
 const submodeMenu = document.getElementById('submodeMenu');
 const submodeInput = document.getElementById('submodeInput');
@@ -364,7 +362,6 @@ if (submodeBtn) {
     });
 }
 
-// Modal functionality
 const modal = document.getElementById('scoreModal');
 const modalClose = document.querySelector('.modal-close');
 
@@ -377,12 +374,11 @@ function showScoreDetails(element) {
         return;
     }
     
-    console.log('Score data:', scoreData); // Для отладки
+    console.log('Score data:', scoreData); //
     
     const beatmap = scoreData.beatmap || {};
     const beatmapset = scoreData.beatmapset || {};
     
-    // Название и дифф
     let title = '';
     if (server === 'bancho') {
         title = beatmapset.title || beatmap.title || 'Unknown Beatmap';
@@ -404,7 +400,6 @@ function showScoreDetails(element) {
         bgElem.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${beatmapsetId}/covers/cover.jpg')`;
         bgElem.style.backgroundSize = 'cover';
         bgElem.style.backgroundPosition = 'center';
-        // Правильная ссылка для скачивания карты
         linkElem.href = `https://osu.ppy.sh/beatmapsets/${beatmapsetId}/download`;
         linkElem.target = '_blank';
     } else {
@@ -459,7 +454,6 @@ if (modalClose) {
     });
 }
 
-// Закрытие при клике вне окна
 window.addEventListener('click', (e) => {
     if (e.target === modal) {
         modal.style.display = 'none';
