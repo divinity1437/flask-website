@@ -6,31 +6,18 @@
 
 {% block body %}
 <div class="container">
-    <div class="auth-bar">
-        {% if session.user %}
-        <div class="user-menu">
-            <img src="{{ session.user.avatar_url }}" alt="Avatar" class="user-avatar-sm">
-            <span class="username">{{ session.user.username }}</span>
-            <a href="/auth/logout" class="logout-btn">Logout</a>
-        </div>
-        {% else %}
-        <a href="/auth/login" class="login-btn">
-            🔑 Login with osu!
-        </a>
-        {% endif %}
-    </div>
-
-    <div class="search-container">
+    <!-- Search Section -->
+    <div class="search-container fade-in">
         <div class="search-card">
             <form id="lookupForm" method="POST" class="search-form">
-                <div class="search-wrapper">
-                    <div class="search-input-group">
+                <div class="search-wrapper" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div class="search-input-group" style="flex: 2; min-width: 250px;">
                         <label>Username or ID</label>
                         <input type="text" name="username" id="username" class="search-input"
                                placeholder="Type a username or ID" value="{{ username }}" required>
                     </div>
 
-                    <div class="mode-selector">
+                    <div class="mode-selector" style="flex: 1;">
                         <label>Game Mode</label>
                         <div class="mode-icons">
                             <span class="mode-icon mode-osu {% if mode == 0 %}active{% endif %}" data-mode="0"></span>
@@ -41,11 +28,11 @@
                         <input type="hidden" name="mode" id="modeInput" value="{{ mode }}">
                     </div>
 
-                    <div class="server-selector">
+                    <div class="server-selector" style="flex: 1;">
                         <label>Server</label>
-                        <div class="server-buttons">
+                        <div class="server-buttons" style="display: flex; gap: 0.5rem;">
                             <button type="button" class="server-btn {% if server == 'okayu' %}active{% endif %}" data-server="okayu">
-                                <img src="https://okayu.click/static/favicon.ico" width="20"> Okayu
+                                <img src="https://okayu.click/static/favicon.ico" width="20" style="border-radius: 50%;"> Okayu
                             </button>
                             <button type="button" class="server-btn {% if server == 'bancho' %}active{% endif %}" data-server="bancho">
                                 <img src="https://osu.ppy.sh/favicon.ico" width="20"> Bancho
@@ -54,11 +41,11 @@
                         <input type="hidden" name="server" id="serverInput" value="{{ server }}">
                     </div>
 
-                    <button type="submit" class="search-button">Search</button>
+                    <button type="submit" class="search-button" style="flex: 0;">Search</button>
                 </div>
 
-                {% if session.user %}
-                <div class="my-profile-btn-container">
+                {% if session_user %}
+                <div class="my-profile-btn-container" style="margin-top: 1rem; text-align: center;">
                     <button type="button" class="my-profile-btn" onclick="fillMyProfile()">
                         ⭐ Show my profile
                     </button>
@@ -67,100 +54,98 @@
             </form>
 
             {% if error %}
-            <div class="error-message">{{ error }}</div>
+            <div class="error-message" style="background: rgba(255, 68, 68, 0.15); border: 1px solid var(--danger); color: var(--danger); padding: 0.75rem; border-radius: 12px; margin-top: 1rem;">
+                {{ error }}
+            </div>
             {% endif %}
         </div>
     </div>
 
+    <!-- Profile Content -->
     {% if user %}
-    <div class="profile-grid">
-        <div class="profile-card">
-            <div class="profile-banner"></div>
-            <div class="profile-avatar">
-                <div class="avatar-wrapper">
-                    <img src="https://a.okayu.click/{{ user.info.id }}" alt="Avatar">
-                    <span class="status-badge {% if is_online %}online{% else %}offline{% endif %}"></span>
+    <div class="profile-grid fade-in" style="display: grid; grid-template-columns: 380px 1fr; gap: 1.5rem;">
+        <!-- Left Column: Profile Card -->
+        <div class="profile-card" style="background: var(--bg-card); border-radius: var(--border-radius); overflow: hidden;">
+            <div class="profile-banner" style="height: 120px; background: linear-gradient(135deg, var(--primary-dark), var(--primary));"></div>
+            <div class="profile-avatar" style="position: relative; text-align: center; margin-top: -50px;">
+                <div class="avatar-wrapper" style="position: relative; display: inline-block;">
+                    <!-- Исправленный URL аватара -->
+                    <img src="https://a.okayu.click/{{ user.info.id }}" alt="Avatar"
+                         style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--bg-card);">
+                    <span class="status-badge {% if is_online %}online{% else %}offline{% endif %}" 
+                          style="position: absolute; bottom: 5px; right: 5px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--bg-card); background: {% if is_online %}var(--success){% else %}var(--text-secondary){% endif %};"></span>
                 </div>
             </div>
-            <div class="profile-info">
-                <h2 class="profile-name">{{ user.info.name }}</h2>
-                <div class="country-badge">
-                    <img src="https://okayu.click/static/images/flags/{{ user.info.country|upper }}.png" alt="Country">
+            <div class="profile-info" style="padding: 1rem 1.5rem 1.5rem; text-align: center;">
+                <h2 style="font-size: 1.6rem;">{{ user.info.name }}</h2>
+                <div class="country-badge" style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.05); padding: 0.3rem 0.8rem; border-radius: 20px; margin-top: 0.5rem;">
+                    <img src="https://okayu.click/static/images/flags/{{ user.info.country|upper }}.png" alt="Country" style="width: 24px; border-radius: 4px;">
                     <span>{{ user.info.country_code }}</span>
                 </div>
 
-                <div class="stats-grid">
-                    {% set stats_mode = user.stats[mode|string] %}
+                <div class="stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
+                    {% set stats_mode = user_stats if user_stats else {} %}
                     <div class="stat-item">
-                        <div class="stat-value">{{ stats_mode.pp|int }}</div>
-                        <div class="stat-label">PP</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">#{{ stats_mode.rank }}</div>
-                        <div class="stat-label">Global Rank</div>
+                        <div class="stat-value" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">{{ stats_mode.pp|int if stats_mode.pp else 0 }}</div>
+                        <div class="stat-label" style="font-size: 0.7rem; color: var(--text-secondary);">PP</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">{{ "%.2f"|format(stats_mode.acc) }}%</div>
-                        <div class="stat-label">Accuracy</div>
+                        <div class="stat-value" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">#{{ stats_mode.rank|int if stats_mode.rank else 0 }}</div>
+                        <div class="stat-label" style="font-size: 0.7rem; color: var(--text-secondary);">Global Rank</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">{{ stats_mode.plays|int }}</div>
-                        <div class="stat-label">Playcount</div>
+                        <div class="stat-value" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">{{ "%.2f"|format(stats_mode.acc|float) if stats_mode.acc else 0 }}%</div>
+                        <div class="stat-label" style="font-size: 0.7rem; color: var(--text-secondary);">Accuracy</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">{{ stats_mode.level|int }}</div>
-                        <div class="stat-label">Level</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ stats_mode.total_hits|int }}</div>
-                        <div class="stat-label">Total Hits</div>
-                    </div>
-                </div>
-
-                <div class="rank-chart">
-                    <div class="rank-progress">
-                        <div class="rank-fill" style="width: {{ stats_mode.pp_progress }}%"></div>
-                    </div>
-                    <div class="rank-stats">
-                        <span>SS: {{ stats_mode.counts_ss }}</span>
-                        <span>S: {{ stats_mode.counts_s }}</span>
-                        <span>A: {{ stats_mode.counts_a }}</span>
+                        <div class="stat-value" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">{{ stats_mode.plays|int if stats_mode.plays else 0 }}</div>
+                        <div class="stat-label" style="font-size: 0.7rem; color: var(--text-secondary);">Playcount</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="scores-card">
-            <div class="scores-header">
-                <h3>🎵 Top 5 Scores</h3>
+        <!-- Right Column: Top Scores -->
+        <div class="scores-card" style="background: var(--bg-card); border-radius: var(--border-radius); overflow: hidden;">
+            <div class="scores-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <h3 style="font-size: 1.1rem;">🎵 Top 5 Scores</h3>
             </div>
             {% if top_scores %}
             <div class="scores-list">
                 {% for score in top_scores[:5] %}
-                <div class="score-item" style="background-image: url('https://assets.ppy.sh/beatmaps/{{ score.beatmap.set_id }}/covers/cover.jpg');">
-                    <div class="score-info">
-                        <div class="score-map">{{ score.beatmap.artist }} - {{ score.beatmap.title }}</div>
-                        <div class="score-diff">{{ score.beatmap.version }}</div>
+                <div class="score-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); background-size: cover; background-position: center; position: relative;">
+                    <div style="position: absolute; inset: 0; background: linear-gradient(90deg, rgba(26,26,46,0.95), rgba(26,26,46,0.85)); z-index: 0;"></div>
+                    <div class="score-info" style="position: relative; z-index: 1;">
+                        <div class="score-map" style="font-weight: 600;">
+                            {% if server == 'bancho' %}
+                                {{ score.beatmapset.title if score.beatmapset else score.beatmap.title }}
+                            {% else %}
+                                {{ score.beatmap.artist }} - {{ score.beatmap.title }}
+                            {% endif %}
+                        </div>
+                        <div class="score-diff" style="font-size: 0.8rem; color: var(--text-secondary);">
+                            {{ score.beatmap.version if score.beatmap else '?' }}
+                        </div>
                     </div>
-                    <div class="score-stats">
-                        <span class="score-pp">{{ "%.2f"|format(score.pp) }}pp</span>
-                        {% if score.mods %}
-                        <span class="score-mods">{{ score.mods_readable }}</span>
+                    <div class="score-stats" style="position: relative; z-index: 1; display: flex; gap: 1rem; align-items: center;">
+                        <span class="score-pp" style="color: var(--primary); font-weight: 700;">{{ "%.2f"|format(score.pp) if score.pp else 0 }}pp</span>
+                        {% if score.mods_readable %}
+                        <span class="score-mods" style="background: rgba(255,255,255,0.1); padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.8rem;">{{ score.mods_readable }}</span>
                         {% endif %}
                     </div>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <div class="empty-state">
+            <div class="empty-state" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
                 No top scores available
             </div>
             {% endif %}
         </div>
     </div>
     {% else %}
-    <div class="empty-profile">
-        <div class="empty-icon">🎮</div>
+    <div class="empty-profile" style="text-align: center; padding: 4rem; background: var(--bg-card); border-radius: var(--border-radius);">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🎮</div>
         <h3>Search for a player</h3>
         <p>Enter a username or ID above to view their profile</p>
     </div>
@@ -168,14 +153,6 @@
 </div>
 
 <script>
-document.querySelectorAll('.server-btn').forEach(btn => {
-    btn.onclick = () => {
-        document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('serverInput').value = btn.dataset.server;
-    };
-});
-
 function selectMode(mode) {
     document.getElementById('modeInput').value = mode;
     document.getElementById('lookupForm').submit();
@@ -186,26 +163,24 @@ function fillMyProfile() {
     document.getElementById('serverInput').value = "bancho";
     document.getElementById('lookupForm').submit();
 }
-</script>
 
-<script>
-function selectMode(mode) {
-    document.getElementById('modeInput').value = mode;
-    document.getElementById('lookupForm').submit();
-}
-
-function fillMyProfile() {
-    document.getElementById('username').value = "{{ session.user.username if session.user else '' }}";
-    document.getElementById('lookupForm').submit();
-}
-
+// Режимы через data-атрибуты
 document.querySelectorAll('.mode-icon').forEach(el => {
     if (!el.getAttribute('data-mode')) {
-        el.setAttribute('data-mode', el.classList.contains('mode-osu') ? '0' :
-                                       el.classList.contains('mode-taiko') ? '1' :
-                                       el.classList.contains('mode-catch') ? '2' : '3');
+        const modeMap = {'mode-osu': '0', 'mode-taiko': '1', 'mode-catch': '2', 'mode-mania': '3'};
+        const modeClass = Object.keys(modeMap).find(c => el.classList.contains(c));
+        if (modeClass) el.setAttribute('data-mode', modeMap[modeClass]);
     }
     el.onclick = () => selectMode(el.getAttribute('data-mode'));
+});
+
+// Выбор сервера
+document.querySelectorAll('.server-btn').forEach(btn => {
+    btn.onclick = () => {
+        document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('serverInput').value = btn.dataset.server;
+    };
 });
 </script>
 {% endblock %}

@@ -2,39 +2,63 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ common.first_name }} {{ common.last_name }}</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>{% block title %}osu! Tools{% endblock %}</title>
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
-    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <link rel='stylesheet'
-          href='https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i,800,800i|Source+Code+Pro:400,500,600,700'
-          type='text/css' media='screen'/>
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto:900" rel="stylesheet">
-
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename = 'css/base.css') }}">
-
+    
+    <!-- Bootstrap 5 (только для сетки, стили переопределены) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-    {% block head %}
-    {% endblock %}
+    
+    <!-- Общий CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    
+    {% block head %}{% endblock %}
 </head>
 <body>
-<div class="navbar-ul">
-    <ul id="navbar-list" class="list-inline">
-        <li><a class="navbar-ref" href="/">Home</a></li>
-        <li><a class="navbar-ref" href="https://{{ common.domain }}/u/3">osu!</a></li>
-        <li><a class="navbar-ref" href="/circleguard">Circleguard web</a></li>
-        <li><a class="navbar-ref" href="/inspector">Profile Inspector</a></li>
-	<li><a class="navbar-ref" href="https://lk.vicilink.icu">my VPS</a></li>
-    </ul>
-</div>
-{% block body %}
-{% endblock %}
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-container" style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; width: 100%;">
+            <div class="nav-brand">
+                <a href="/" style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">osu! Tools</a>
+            </div>
+            <div class="nav-links" style="display: flex; gap: 2rem;">
+                <a href="/inspector">Inspector</a>
+                <a href="/circleguard">Replay Analysis</a>
+            </div>
+            <div class="nav-auth">
+                {% if session.user %}
+                <div class="user-menu" style="display: flex; align-items: center; gap: 0.75rem;">
+                    <img src="{{ session.user.avatar_url }}" style="width: 32px; height: 32px; border-radius: 50%;">
+                    <span>{{ session.user.username }}</span>
+                    <a href="/auth/logout" style="color: var(--primary);">Logout</a>
+                </div>
+                {% else %}
+                <a href="/auth/login" class="login-btn" style="background: var(--primary); padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; color: white;">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        {% block body %}{% endblock %}
+    </main>
+
+    <script>
+        // Общие скрипты
+        document.querySelectorAll('.nav-links a, .login-btn').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (this.getAttribute('href') && !this.getAttribute('href').startsWith('#')) {
+                    // обычная навигация
+                }
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
