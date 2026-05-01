@@ -1,7 +1,7 @@
 import requests
-from flask import Blueprint, render_template, request, session
 import time
 import os
+from flask import Blueprint, render_template, request, session
 
 inspector_bp = Blueprint('inspector', __name__, template_folder='../templates')
 
@@ -12,14 +12,14 @@ MODES = {
     3: "mania",
 }
 
+# Подрежимы для Okayu сервера
 SUBMODES_OKAYU = {
     0: {"name": "Vanilla", "icon": "🎯", "description": "Standard gameplay"},
     4: {"name": "Relax", "icon": "😌", "description": "Auto-aim, manual tap"},
     8: {"name": "Autopilot", "icon": "🤖", "description": "Auto-tap, manual aim"},
 }
 
-DEFAULT_SUBMODE = 0
-
+# Глобальная переменная для хранения токена Bancho API
 bancho_token = None
 token_expiry = 0
 
@@ -27,11 +27,9 @@ def get_bancho_token():
     """Получает или обновляет access-токен для Bancho API"""
     global bancho_token, token_expiry
     
-    # Если токен ещё живой (обычно живёт 1-2 часа)
     if bancho_token and time.time() < token_expiry:
         return bancho_token
     
-    # Получаем новый токен
     client_id = os.environ.get("OSU_CLIENT_ID")
     client_secret = os.environ.get("OSU_CLIENT_SECRET")
     
@@ -52,10 +50,10 @@ def get_bancho_token():
         if response.status_code == 200:
             token_data = response.json()
             bancho_token = token_data.get("access_token")
-            token_expiry = time.time() + 5400  # 1.5 часа
+            token_expiry = time.time() + 5400
             return bancho_token
         else:
-            print(f"Token error: {response.status_code} - {response.text}")
+            print(f"Token error: {response.status_code}")
             return None
     except Exception as e:
         print(f"Token request failed: {e}")
@@ -85,14 +83,14 @@ def get_osu_user_bancho(username, mode=0):
             print(f"User '{username}' not found on Bancho")
             return None
         else:
-            print(f"Bancho API error: {response.status_code} - {response.text}")
+            print(f"Bancho API error: {response.status_code}")
             return None
     except Exception as e:
         print(f"Bancho API request failed: {e}")
         return None
 
 def transform_bancho_data(bancho_user, mode):
-    """Преобразует данные из Bancho API в формат, который ожидает шаблон"""
+    """Преобразует данные из Bancho API в формат шаблона"""
     stats = bancho_user.get("statistics", {})
     
     mode_stats = {
@@ -109,7 +107,6 @@ def transform_bancho_data(bancho_user, mode):
         "counts_a": stats.get("grade_counts", {}).get("a", 0),
     }
     
-    # Прогресс PP
     current_pp = mode_stats["pp"]
     rank = mode_stats["rank"]
     if rank and rank < 10000:
@@ -118,13 +115,11 @@ def transform_bancho_data(bancho_user, mode):
         progress = 50
     mode_stats["pp_progress"] = progress
     
-    # Получаем баннер (cover)
     cover_url = None
     cover = bancho_user.get("cover")
     if cover:
         cover_url = cover.get("url")
     
-    # Получаем аватар
     avatar_url = bancho_user.get("avatar_url")
     
     return {
@@ -148,8 +143,6 @@ def get_osu_user_okayu(username):
             data = response.json()
             if data.get("status") == "success" and "player" in data:
                 player = data["player"]
-                
-                # Добавляем уровень, если нет
                 if "stats" in player:
                     for mode_key, stats in player["stats"].items():
                         if "level" not in stats or stats["level"] is None:
@@ -158,15 +151,11 @@ def get_osu_user_okayu(username):
                                 stats["level"] = int(total_score ** 0.4 * 0.2)
                             else:
                                 stats["level"] = 1
-                
-                # Добавляем баннер для Okayu
                 if "info" in player:
                     user_id = player["info"].get("id")
                     if user_id:
                         player["info"]["cover_url"] = f"https://okayu.click/banners/{user_id}"
-                        # Аватар для Okayu
                         player["info"]["avatar_url"] = f"https://a.okayu.click/{user_id}"
-                
                 return player
         return None
     except Exception as e:
@@ -197,12 +186,9 @@ def get_player_status_okayu(username):
 
 def get_top_scores_okayu(username, mode=0, limit=5):
     """Get top scores from Okayu API with mode support"""
-    mode_map = {0: "osu", 1: "taiko", 2: "catch", 3: "mania"}
-    mode_str = mode_map.get(mode, "osu")
-    
-    url = f"https://api.okayu.click/v1/get_player_scores?name={username}&scope=best&limit={limit}&mode={mode_str}"
+    url = f"https://api.okayu.click/v1/get_player_scores?name={username}&scope=best&limit={limit}&mode={mode}"
     try:
-        resp = requests.get(url, timeout=5)
+        resp = requests.get(url, timeout=10)
         data = resp.json()
         if data.get("status") == "success":
             scores = data.get("scores", [])
@@ -210,9 +196,12 @@ def get_top_scores_okayu(username, mode=0, limit=5):
                 if "mods" in score:
                     score["mods_readable"] = mods_to_readable(score.get("mods", 0))
             return scores
+        else:
+            print(f"[Okayu API] Error for mode {mode}: {data.get('status')}")
+            return []
     except Exception as e:
-        print("Error fetching top scores from Okayu:", e)
-    return []
+        print(f"Error fetching top scores from Okayu: {e}")
+        return []
 
 def get_top_scores_bancho(username, mode=0, limit=5):
     """Get top scores from Bancho API with mode support"""
@@ -220,7 +209,7 @@ def get_top_scores_bancho(username, mode=0, limit=5):
     if not token:
         return []
     
-     mode_map = {0: "osu", 1: "taiko", 2: "fruits", 3: "mania"}
+    mode_map = {0: "osu", 1: "taiko", 2: "fruits", 3: "mania"}
     mode_str = mode_map.get(mode, "osu")
     
     headers = {"Authorization": f"Bearer {token}"}
@@ -248,12 +237,12 @@ def get_top_scores_bancho(username, mode=0, limit=5):
                     score["beatmapset_id"] = score["beatmap"].get("beatmapset_id", 0)
             return scores
     except Exception as e:
-        print(f"Bancho top scores error for mode {mode_str}: {e}")
+        print(f"Bancho top scores error: {e}")
     
     return []
 
 def mods_to_readable(mods_bitmask):
-    """Convert mods bitmask to readable string (для Okayu API)"""
+    """Convert mods bitmask to readable string"""
     mods_map = {
         1 << 0: "NF", 1 << 1: "EZ", 1 << 2: "TD", 1 << 3: "HD",
         1 << 4: "HR", 1 << 5: "SD", 1 << 6: "DT", 1 << 7: "RX",
@@ -277,7 +266,7 @@ def inspector_index():
     user_data = None
     error = None
     mode = 0
-    submode = 0  # Добавляем подрежим
+    submode = 0
     username = ""
     is_online = False
     current_action = None
@@ -290,20 +279,17 @@ def inspector_index():
             mode = int(request.form.get("mode", 0))
         except ValueError:
             mode = 0
-        # Получаем подрежим (только для Okayu)
-        submode = int(request.form.get("submode", 0)) if server == "okayu" else 0
         server = request.form.get("server", "okayu")
+        submode = int(request.form.get("submode", 0)) if server == "okayu" else 0
 
         if username:
             if server == "okayu":
-                # Для Okayu используем mode + submode
-                actual_mode = mode + submode  # 0+0=0, 0+4=4, 0+8=8
+                actual_mode = mode + submode
                 user_data = get_osu_user_okayu(username)
                 if user_data:
                     is_online, current_action = get_player_status_okayu(username)
                     top_scores = get_top_scores_okayu(username, actual_mode, 5)
             elif server == "bancho":
-                # Для Bancho игнорируем submode
                 user_data = get_osu_user_bancho(username, mode)
                 if user_data:
                     is_online = False
@@ -333,6 +319,6 @@ def inspector_index():
         current_action=current_action,
         top_scores=top_scores,
         server=server,
-        submode_options=SUBMODES_OKAYU if server == "okayu" else {},
+        submode_options=SUBMODES_OKAYU,
         session_user=session.get('user')
     )
