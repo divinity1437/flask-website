@@ -62,54 +62,87 @@
     </div>
 
     <!-- Profile Content -->
-{% if user %}
-<div class="profile-grid fade-in" style="display: grid; grid-template-columns: 380px 1fr; gap: 1.5rem;">
-    <!-- Left Column: Profile Card -->
-    <div class="profile-card" style="background: var(--bg-card); border-radius: var(--border-radius); overflow: hidden;">
-        <div class="profile-banner" style="height: 100px; background: linear-gradient(135deg, var(--primary-dark), var(--primary));"></div>
-        <div class="profile-avatar" style="position: relative; text-align: center; margin-top: -40px; padding-bottom: 0.5rem;">
-            <div class="avatar-wrapper" style="position: relative; display: inline-block;">
-                <!-- Выбор аватарки в зависимости от сервера -->
-                {% if server == 'bancho' %}
-                    <img src="https://a.ppy.sh/{{ user.info.id }}" alt="Avatar"
-                         style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--bg-card); background: var(--bg-card);"
-                         onerror="this.src='https://osu.ppy.sh/images/avatar-guest.jpg'">
+    {% if user %}
+    <div class="profile-grid fade-in" style="display: grid; grid-template-columns: 380px 1fr; gap: 1.5rem;">
+        <!-- Left Column: Profile Card -->
+        <div class="profile-card" style="background: var(--bg-card); border-radius: var(--border-radius); overflow: hidden;">
+            <!-- Profile Banner -->
+            <div class="profile-banner" style="height: 120px; overflow: hidden; position: relative;">
+                {% if server == 'bancho' and user.info.cover_url %}
+                    <img src="{{ user.info.cover_url }}" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
+                {% elif server == 'okayu' and user.info.cover_url %}
+                    <img src="{{ user.info.cover_url }}" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
                 {% else %}
-                    <img src="https://a.okayu.click/{{ user.info.id }}" alt="Avatar"
-                         style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--bg-card); background: var(--bg-card);">
+                    <div style="height: 100%; background: linear-gradient(135deg, var(--primary-dark), var(--primary));"></div>
                 {% endif %}
-                <span class="status-badge {% if is_online %}online{% else %}offline{% endif %}" 
-                      style="position: absolute; bottom: 5px; right: 5px; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--bg-card); background: {% if is_online %}var(--success){% else %}var(--text-secondary){% endif %};"></span>
-            </div>
-        </div>
-        <div class="profile-info" style="padding: 0.5rem 1.5rem 1.5rem 1.5rem; text-align: center;">
-            <h2 style="font-size: 1.4rem; margin-bottom: 0.25rem;">{{ user.info.name }}</h2>
-            <div class="country-badge" style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.05); padding: 0.25rem 0.75rem; border-radius: 20px; margin-top: 0.25rem;">
-                <img src="https://okayu.click/static/images/flags/{{ user.info.country|upper }}.png" alt="Country" style="width: 20px; border-radius: 4px;">
-                <span style="font-size: 0.85rem;">{{ user.info.country_code if user.info.country_code else user.info.country }}</span>
             </div>
 
-            <div class="stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem;">
-                {% set stats_mode = user_stats if user_stats else {} %}
-                <div class="stat-item">
-                    <div class="stat-value" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">{{ stats_mode.pp|int if stats_mode.pp else 0 }}</div>
-                    <div class="stat-label" style="font-size: 0.65rem; color: var(--text-secondary);">PP</div>
+            <!-- Avatar -->
+            <div class="profile-avatar" style="position: relative; text-align: center; margin-top: -50px;">
+                <div class="avatar-wrapper" style="position: relative; display: inline-block;">
+                    {% if server == 'bancho' %}
+                        {% if user.info.avatar_url %}
+                            <img src="{{ user.info.avatar_url }}" alt="Avatar"
+                                 style="width: 90px; height: 90px; border-radius: 50%; border: 4px solid var(--bg-card); background: var(--bg-card);">
+                        {% else %}
+                            <img src="https://a.ppy.sh/{{ user.info.id }}" alt="Avatar"
+                                 style="width: 90px; height: 90px; border-radius: 50%; border: 4px solid var(--bg-card); background: var(--bg-card);"
+                                 onerror="this.src='https://osu.ppy.sh/images/avatar-guest.jpg'">
+                        {% endif %}
+                    {% else %}
+                        {% if user.info.avatar_url %}
+                            <img src="{{ user.info.avatar_url }}" alt="Avatar"
+                                 style="width: 90px; height: 90px; border-radius: 50%; border: 4px solid var(--bg-card); background: var(--bg-card);">
+                        {% else %}
+                            <img src="https://a.okayu.click/{{ user.info.id }}" alt="Avatar"
+                                 style="width: 90px; height: 90px; border-radius: 50%; border: 4px solid var(--bg-card); background: var(--bg-card);">
+                        {% endif %}
+                    {% endif %}
+                    <span class="status-badge {% if is_online %}online{% else %}offline{% endif %}" 
+                          style="position: absolute; bottom: 5px; right: 5px; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--bg-card); background: {% if is_online %}var(--success){% else %}var(--text-secondary){% endif %};"></span>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">#{{ stats_mode.rank|int if stats_mode.rank else 0 }}</div>
-                    <div class="stat-label" style="font-size: 0.65rem; color: var(--text-secondary);">Global Rank</div>
+            </div>
+
+            <div class="profile-info" style="padding: 0.5rem 1.5rem 1.5rem 1.5rem; text-align: center;">
+                <h2 style="font-size: 1.4rem; margin-bottom: 0.25rem;">{{ user.info.name }}</h2>
+                <div class="country-badge" style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.05); padding: 0.25rem 0.75rem; border-radius: 20px; margin-top: 0.25rem;">
+                    <img src="https://okayu.click/static/images/flags/{{ user.info.country|upper }}.png" alt="Country" style="width: 20px; border-radius: 4px;">
+                    <span style="font-size: 0.85rem;">{{ user.info.country_code if user.info.country_code else user.info.country }}</span>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">{{ "%.2f"|format(stats_mode.acc|float) if stats_mode.acc else 0 }}%</div>
-                    <div class="stat-label" style="font-size: 0.65rem; color: var(--text-secondary);">Accuracy</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">{{ stats_mode.plays|int if stats_mode.plays else 0 }}</div>
-                    <div class="stat-label" style="font-size: 0.65rem; color: var(--text-secondary);">Playcount</div>
+
+                <div class="stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem;">
+                    {% set stats_mode = user_stats if user_stats else {} %}
+                    <div class="stat-item">
+                        <div class="stat-value" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">{{ stats_mode.pp|int if stats_mode.pp else 0 }}</div>
+                        <div class="stat-label" style="font-size: 0.65rem; color: var(--text-secondary);">PP</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">#{{ stats_mode.rank|int if stats_mode.rank else 0 }}</div>
+                        <div class="stat-label" style="font-size: 0.65rem; color: var(--text-secondary);">Global Rank</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">{{ "%.2f"|format(stats_mode.acc|float) if stats_mode.acc else 0 }}%</div>
+                        <div class="stat-label" style="font-size: 0.65rem; color: var(--text-secondary);">Accuracy</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">{{ stats_mode.plays|int if stats_mode.plays else 0 }}</div>
+                        <div class="stat-label" style="font-size: 0.65rem; color: var(--text-secondary);">Playcount</div>
+                    </div>
+                    {% if stats_mode.country_rank %}
+                    <div class="stat-item">
+                        <div class="stat-value" style="font-size: 1rem; font-weight: 700; color: var(--primary);">#{{ stats_mode.country_rank }}</div>
+                        <div class="stat-label" style="font-size: 0.65rem; color: var(--text-secondary);">Country Rank</div>
+                    </div>
+                    {% endif %}
+                    {% if stats_mode.level %}
+                    <div class="stat-item">
+                        <div class="stat-value" style="font-size: 1rem; font-weight: 700; color: var(--primary);">{{ stats_mode.level }}</div>
+                        <div class="stat-label" style="font-size: 0.65rem; color: var(--text-secondary);">Level</div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    </div>
 
         <!-- Right Column: Top Scores -->
         <div class="scores-card" style="background: var(--bg-card); border-radius: var(--border-radius); overflow: hidden;">
