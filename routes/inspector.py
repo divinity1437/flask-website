@@ -230,12 +230,46 @@ def get_top_scores_bancho(username, mode=0, limit=5):
         scores_resp = requests.get(scores_url, headers=headers, params=params, timeout=10)
         if scores_resp.status_code == 200:
             scores = scores_resp.json()
+            formatted_scores = []
             for score in scores:
+                # Преобразуем моды
                 mods_list = score.get("mods", [])
-                score["mods_readable"] = "+".join(mods_list) if mods_list else "NM"
-                if "beatmap" in score:
-                    score["beatmapset_id"] = score["beatmap"].get("beatmapset_id", 0)
-            return scores
+                mods_readable = "+".join(mods_list) if mods_list else "NM"
+                
+                # Получаем статистику хитов
+                statistics = score.get("statistics", {})
+                
+                # Bancho API использует другие названия полей
+                formatted_score = {
+                    "pp": score.get("pp", 0),
+                    "score": score.get("score", 0),
+                    "acc": score.get("accuracy", 0),
+                    "mods_readable": mods_readable,
+                    "max_combo": score.get("max_combo", 0),
+                    "n300": statistics.get("count_300", 0),
+                    "n100": statistics.get("count_100", 0),
+                    "n50": statistics.get("count_50", 0),
+                    "nmiss": statistics.get("count_miss", 0),
+                    "ngeki": statistics.get("count_geki", 0),
+                    "nkatu": statistics.get("count_katu", 0),
+                    "play_time": score.get("ended_at", None),
+                    "beatmap_id": score.get("beatmap", {}).get("id", 0),
+                    "beatmapset_id": score.get("beatmap", {}).get("beatmapset_id", 0),
+                    "beatmap": {
+                        "id": score.get("beatmap", {}).get("id", 0),
+                        "title": score.get("beatmap", {}).get("title", "Unknown"),
+                        "artist": score.get("beatmap", {}).get("artist", "Unknown"),
+                        "version": score.get("beatmap", {}).get("version", "Unknown"),
+                        "beatmapset_id": score.get("beatmap", {}).get("beatmapset_id", 0)
+                    },
+                    "beatmapset": {
+                        "id": score.get("beatmap", {}).get("beatmapset_id", 0),
+                        "title": score.get("beatmap", {}).get("title", "Unknown"),
+                        "artist": score.get("beatmap", {}).get("artist", "Unknown")
+                    }
+                }
+                formatted_scores.append(formatted_score)
+            return formatted_scores
     except Exception as e:
         print(f"Bancho top scores error: {e}")
     

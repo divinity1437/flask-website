@@ -281,6 +281,9 @@
 </div>
 
 <script>
+
+const server = "{{ server }}";
+
 function selectMode(mode) {
     document.getElementById('modeInput').value = mode;
     document.getElementById('lookupForm').submit();
@@ -374,13 +377,20 @@ function showScoreDetails(element) {
         return;
     }
     
+    console.log('Score data:', scoreData); // Для отладки
+    
     const beatmap = scoreData.beatmap || {};
     const beatmapset = scoreData.beatmapset || {};
     
     // Название и дифф
-    const title = (beatmap.artist && beatmap.title) 
-        ? `${beatmap.artist} - ${beatmap.title}`
-        : beatmapset.title || 'Unknown Beatmap';
+    let title = '';
+    if (server === 'bancho') {
+        title = beatmapset.title || beatmap.title || 'Unknown Beatmap';
+    } else {
+        title = (beatmap.artist && beatmap.title) 
+            ? `${beatmap.artist} - ${beatmap.title}`
+            : beatmapset.title || 'Unknown Beatmap';
+    }
     document.getElementById('modalBeatmapTitle').textContent = title;
     document.getElementById('modalBeatmapDiff').textContent = beatmap.version || 'Unknown Difficulty';
     
@@ -394,16 +404,24 @@ function showScoreDetails(element) {
         bgElem.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${beatmapsetId}/covers/cover.jpg')`;
         bgElem.style.backgroundSize = 'cover';
         bgElem.style.backgroundPosition = 'center';
-        linkElem.href = `https://osu.ppy.sh/beatmapsets/${beatmapsetId}#osu/${beatmapId || ''}`;
+        // Правильная ссылка для скачивания карты
+        linkElem.href = `https://osu.ppy.sh/beatmapsets/${beatmapsetId}/download`;
+        linkElem.target = '_blank';
     } else {
         bgElem.style.background = 'linear-gradient(135deg, var(--primary-dark), var(--primary))';
+        linkElem.href = '#';
     }
     
     // Статистика
-    document.getElementById('modalPP').textContent = scoreData.pp ? `${Math.round(scoreData.pp)}pp` : '0pp';
-    document.getElementById('modalScore').textContent = scoreData.score ? scoreData.score.toLocaleString() : '0';
-    document.getElementById('modalAcc').textContent = scoreData.acc ? `${scoreData.acc.toFixed(2)}%` : '0%';
-    document.getElementById('modalMods').textContent = scoreData.mods_readable || 'NM';
+    const pp = scoreData.pp || 0;
+    const scoreVal = scoreData.score || 0;
+    const acc = scoreData.acc || 0;
+    const mods = scoreData.mods_readable || 'NM';
+    
+    document.getElementById('modalPP').textContent = pp ? `${Math.round(pp)}pp` : '0pp';
+    document.getElementById('modalScore').textContent = scoreVal ? scoreVal.toLocaleString() : '0';
+    document.getElementById('modalAcc').textContent = acc ? `${acc.toFixed(2)}%` : '0%';
+    document.getElementById('modalMods').textContent = mods;
     
     // Хиты
     document.getElementById('modal300').textContent = scoreData.n300 || 0;
@@ -413,8 +431,16 @@ function showScoreDetails(element) {
     
     // Доп. информация
     if (scoreData.play_time) {
-        const date = new Date(scoreData.play_time);
-        document.getElementById('modalDate').textContent = `📅 ${date.toLocaleDateString()}`;
+        try {
+            const date = new Date(scoreData.play_time);
+            if (!isNaN(date.getTime())) {
+                document.getElementById('modalDate').textContent = `📅 ${date.toLocaleDateString()}`;
+            } else {
+                document.getElementById('modalDate').textContent = '📅 Date unknown';
+            }
+        } catch(e) {
+            document.getElementById('modalDate').textContent = '📅 Date unknown';
+        }
     } else {
         document.getElementById('modalDate').textContent = '📅 Date unknown';
     }
