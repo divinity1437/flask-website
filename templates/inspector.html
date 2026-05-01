@@ -40,6 +40,35 @@
                         </div>
                         <input type="hidden" name="server" id="serverInput" value="{{ server }}">
                     </div>
+                    <!-- Okayu mode selector -->
+                    <div class="submode-selector" id="submodeSelector" style="flex: 1; {% if server != 'okayu' %}display: none;{% endif %}">
+                        <label>Sub-mode</label>
+                        <div class="submode-dropdown">
+                            <button type="button" class="submode-btn" id="submodeBtn" data-current="{{ submode }}">
+                                {% if submode_options.get(submode) %}
+                                    {{ submode_options[submode].icon }} {{ submode_options[submode].name }}
+                                {% else %}
+                                    🎯 Vanilla
+                                {% endif %}
+                                <span style="margin-left: 0.5rem;">▼</span>
+                            </button>
+                            <div class="submode-menu" id="submodeMenu">
+                                {% for sm_value, sm_data in submode_options.items() %}
+                                <div class="submode-option" data-value="{{ sm_value }}">
+                                    <span class="submode-icon">{{ sm_data.icon }}</span>
+                                    <div class="submode-info">
+                                        <strong>{{ sm_data.name }}</strong>
+                                        <small>{{ sm_data.description }}</small>
+                                    </div>
+                                    {% if submode == sm_value %}
+                                    <span class="check">✓</span>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <input type="hidden" name="submode" id="submodeInput" value="{{ submode }}">
+                    </div>
 
                     <button type="submit" class="search-button" style="flex: 0;">Search</button>
                 </div>
@@ -221,5 +250,60 @@ document.querySelectorAll('.server-btn').forEach(btn => {
         document.getElementById('serverInput').value = btn.dataset.server;
     };
 });
+
+const submodeBtn = document.getElementById('submodeBtn');
+const submodeMenu = document.getElementById('submodeMenu');
+const submodeInput = document.getElementById('submodeInput');
+const submodeSelector = document.getElementById('submodeSelector');
+
+if (submodeBtn) {
+    submodeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        submodeMenu.classList.toggle('show');
+    });
+    
+    document.addEventListener('click', () => {
+        submodeMenu.classList.remove('show');
+    });
+    
+    document.querySelectorAll('.submode-option').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const value = opt.dataset.value;
+            submodeInput.value = value;
+            
+            const icon = opt.querySelector('.submode-icon').textContent;
+            const name = opt.querySelector('strong').textContent;
+            submodeBtn.innerHTML = `${icon} ${name} <span style="margin-left: 0.5rem;">▼</span>`;
+            
+            document.querySelectorAll('.submode-option').forEach(o => {
+                o.querySelector('.check')?.remove();
+            });
+            opt.insertAdjacentHTML('beforeend', '<span class="check">✓</span>');
+            
+            submodeMenu.classList.remove('show');
+            
+            document.getElementById('lookupForm').submit();
+        });
+    });
+}
+
+const serverBtns = document.querySelectorAll('.server-btn');
+serverBtns.forEach(btn => {
+    const originalClick = btn.onclick;
+    btn.onclick = () => {
+        const server = btn.dataset.server;
+        if (submodeSelector) {
+            if (server === 'okayu') {
+                submodeSelector.style.display = 'block';
+            } else {
+                submodeSelector.style.display = 'none';
+                document.getElementById('submodeInput').value = '0';
+            }
+        }
+        if (originalClick) originalClick();
+    };
+});
+
 </script>
 {% endblock %}

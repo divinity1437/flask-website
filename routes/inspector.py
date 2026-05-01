@@ -12,7 +12,14 @@ MODES = {
     3: "mania",
 }
 
-# Глобальная переменная для хранения токена Bancho API
+SUBMODES_OKAYU = {
+    0: {"name": "Vanilla", "icon": "🎯", "description": "Standard gameplay"},
+    4: {"name": "Relax", "icon": "😌", "description": "Auto-aim, manual tap"},
+    8: {"name": "Autopilot", "icon": "🤖", "description": "Auto-tap, manual aim"},
+}
+
+DEFAULT_SUBMODE = 0
+
 bancho_token = None
 token_expiry = 0
 
@@ -190,7 +197,6 @@ def get_player_status_okayu(username):
 
 def get_top_scores_okayu(username, mode=0, limit=5):
     """Get top scores from Okayu API with mode support"""
-    # Маппинг режимов для Okayu API
     mode_map = {0: "osu", 1: "taiko", 2: "catch", 3: "mania"}
     mode_str = mode_map.get(mode, "osu")
     
@@ -214,14 +220,12 @@ def get_top_scores_bancho(username, mode=0, limit=5):
     if not token:
         return []
     
-    # Маппинг режимов для Bancho API
-    mode_map = {0: "osu", 1: "taiko", 2: "fruits", 3: "mania"}
+     mode_map = {0: "osu", 1: "taiko", 2: "fruits", 3: "mania"}
     mode_str = mode_map.get(mode, "osu")
     
     headers = {"Authorization": f"Bearer {token}"}
     
     try:
-        # Получаем ID пользователя
         user_url = f"https://osu.ppy.sh/api/v2/users/@{username}"
         user_resp = requests.get(user_url, headers=headers, timeout=10)
         if user_resp.status_code != 200:
@@ -231,7 +235,6 @@ def get_top_scores_bancho(username, mode=0, limit=5):
         if not user_id:
             return []
         
-        # Получаем топ скоры для выбранного режима
         scores_url = f"https://osu.ppy.sh/api/v2/users/{user_id}/scores/best"
         params = {"limit": limit, "mode": mode_str}
         
@@ -274,6 +277,7 @@ def inspector_index():
     user_data = None
     error = None
     mode = 0
+    submode = 0  # Добавляем подрежим
     username = ""
     is_online = False
     current_action = None
@@ -286,20 +290,23 @@ def inspector_index():
             mode = int(request.form.get("mode", 0))
         except ValueError:
             mode = 0
+        # Получаем подрежим (только для Okayu)
+        submode = int(request.form.get("submode", 0)) if server == "okayu" else 0
         server = request.form.get("server", "okayu")
 
         if username:
             if server == "okayu":
+                # Для Okayu используем mode + submode
+                actual_mode = mode + submode  # 0+0=0, 0+4=4, 0+8=8
                 user_data = get_osu_user_okayu(username)
                 if user_data:
                     is_online, current_action = get_player_status_okayu(username)
-                    # ПЕРЕДАЁМ mode В ФУНКЦИЮ
-                    top_scores = get_top_scores_okayu(username, mode, 5)
+                    top_scores = get_top_scores_okayu(username, actual_mode, 5)
             elif server == "bancho":
+                # Для Bancho игнорируем submode
                 user_data = get_osu_user_bancho(username, mode)
                 if user_data:
                     is_online = False
-                    # ПЕРЕДАЁМ mode В ФУНКЦИЮ
                     top_scores = get_top_scores_bancho(username, mode, 5)
             
             if not user_data:
@@ -319,11 +326,13 @@ def inspector_index():
         user_stats=user_stats,
         error=error,
         mode=mode,
+        submode=submode,
         username=username,
         current_mode=current_mode_name,
         is_online=is_online,
         current_action=current_action,
         top_scores=top_scores,
         server=server,
+        submode_options=SUBMODES_OKAYU if server == "okayu" else {},
         session_user=session.get('user')
     )
