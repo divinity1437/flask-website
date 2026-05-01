@@ -2,150 +2,113 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/circleguard.css') }}">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 {% endblock %}
 
 {% block body %}
-<div class="container py-4">
-    
-    <h1 class="mb-4 text-center">
-        <i class="fas fa-chart-line"></i> Replay Analysis
+<div class="container">
+    <!-- Header -->
+    <div class="results-header fade-in" style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 1.8rem;">📊 Replay Analysis</h1>
         {% if replay.username %}
-        <small class="text-muted">- {{ replay.username }}</small>
+        <p class="text-muted">{{ replay.username }} • {{ replay.mods }} • {{ replay.score|int }} score</p>
         {% endif %}
-    </h1>
+    </div>
 
-    <!-- Блок информации о карте -->
+    <!-- Beatmap Card -->
     {% if replay.beatmap %}
-    <div class="card card-beatmap mb-4" style="background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://assets.ppy.sh/beatmaps/{{ replay.beatmap.beatmapset_id }}/covers/cover.jpg'); background-size: cover;">
-        <div class="card-body text-white">
-            <h3 class="card-title">{{ replay.beatmapset.artist }} – {{ replay.beatmapset.title }}</h3>
-            <p class="card-text">
-                <strong>Difficulty:</strong> {{ replay.beatmap.version }}<br>
-                <strong>Mapper:</strong> {{ replay.beatmapset.creator }}<br>
-                {% if replay.beatmap.bpm %}<strong>BPM:</strong> {{ replay.beatmap.bpm }} •{% endif %}
-                {% if replay.beatmap.length %}<strong>Length:</strong> {{ replay.beatmap.length }}s •{% endif %}
-                <strong>CS/AR/OD/HP:</strong> {{ replay.beatmap.cs }}/{{ replay.beatmap.ar }}/{{ replay.beatmap.od }}/{{ replay.beatmap.hp }}
+    <div class="card beatmap-card fade-in" style="margin-bottom: 1.5rem; overflow: hidden;">
+        <div class="beatmap-bg" style="position: relative; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url('https://assets.ppy.sh/beatmaps/{{ replay.beatmap.beatmapset_id }}/covers/cover.jpg'); background-size: cover; background-position: center; padding: 1.5rem;">
+            <h3 style="margin-bottom: 0.5rem;">{{ replay.beatmapset.artist }} – {{ replay.beatmapset.title }}</h3>
+            <p class="mb-2">
+                <strong>{{ replay.beatmap.version }}</strong> • mapped by {{ replay.beatmapset.creator }}
             </p>
-            <a href="https://osu.ppy.sh/beatmapsets/{{ replay.beatmap.beatmapset_id }}/#osu/{{ replay.beatmap_id }}" class="btn btn-outline-light" target="_blank">
-                View on osu! →
-            </a>
+            <div class="beatmap-stats" style="display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem;">
+                {% if replay.beatmap.bpm %}<span>🎵 BPM: {{ replay.beatmap.bpm }}</span>{% endif %}
+                {% if replay.beatmap.length %}<span>⏱️ Length: {{ replay.beatmap.length }}s</span>{% endif %}
+                <span>💪 CS:{{ replay.beatmap.cs }} / AR:{{ replay.beatmap.ar }} / OD:{{ replay.beatmap.od }} / HP:{{ replay.beatmap.hp }}</span>
+            </div>
+            <a href="https://osu.ppy.sh/beatmapsets/{{ replay.beatmap.beatmapset_id }}/#osu/{{ replay.beatmap_id }}" class="btn btn-outline-light btn-sm mt-3" target="_blank" style="display: inline-block; color: white;">View on osu! →</a>
         </div>
     </div>
     {% endif %}
 
-    <!-- Основная карточка с метриками -->
-    <div class="card card-summary p-4 mb-4">
-        <h4 class="mb-3">📊 Performance Metrics</h4>
-        
-        <!-- Метрики в виде сетки -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="metric-card {% if replay.ur < 40 or replay.ur > 200 %}metric-danger{% elif replay.ur >= 40 and replay.ur <= 55 or replay.ur > 180 and replay.ur <= 200 %}metric-warning{% else %}metric-success{% endif %}">
-                    <div class="metric-value">{{ "%.1f"|format(replay.ur) }}</div>
-                    <div class="metric-label">Unstable Rate (UR)</div>
-                    <div class="metric-hint">70–180 is normal</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="metric-card {% if replay.frametime_suspicious %}metric-danger{% endif %}">
-                    <div class="metric-value">{{ "%.2f"|format(replay.frametime) }} ms</div>
-                    <div class="metric-label">Avg Frame Time</div>
-                    <div class="metric-hint">~16ms@60fps, ~8ms@120fps</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="metric-card {% if replay.snaps_count >= 50 %}metric-danger{% elif replay.snaps_count >= 15 %}metric-warning{% else %}metric-success{% endif %}">
-                    <div class="metric-value">{{ replay.snaps_count }}</div>
-                    <div class="metric-label">Snaps Detected</div>
-                    <div class="metric-hint">Sharp cursor jumps</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="metric-card">
-                    <div class="metric-value">{{ replay.mods }}</div>
-                    <div class="metric-label">Mods</div>
-                    <div class="metric-hint">{{ replay.score|int }} score</div>
-                </div>
-            </div>
+    <!-- Metrics Grid -->
+    <div class="metrics-grid fade-in" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+        <div class="metric-card {% if replay.ur < 40 or replay.ur > 200 %}danger{% elif replay.ur > 180 %}warning{% else %}success{% endif %}">
+            <div class="value">{{ "%.1f"|format(replay.ur) }}</div>
+            <div class="label">Unstable Rate</div>
+            <div class="hint">70–180 normal</div>
         </div>
-        
-        <!-- ГРАФИК СТАБИЛЬНОСТИ (UR) -->
-        <div class="mt-4">
-            <h5>📈 Timing Stability Chart</h5>
-            <canvas id="frametimeChart" height="100"></canvas>
-            <p class="text-muted small text-center mt-2">Frame time deviations over time — flatter = more consistent</p>
+        <div class="metric-card {% if replay.frametime_suspicious %}danger{% endif %}">
+            <div class="value">{{ "%.2f"|format(replay.frametime) }} ms</div>
+            <div class="label">Avg Frame Time</div>
+            <div class="hint">~16ms@60fps</div>
+        </div>
+        <div class="metric-card {% if replay.snaps_count >= 50 %}danger{% elif replay.snaps_count >= 15 %}warning{% else %}success{% endif %}">
+            <div class="value">{{ replay.snaps_count }}</div>
+            <div class="label">Snaps Detected</div>
+            <div class="hint">Sharp cursor jumps</div>
+        </div>
+        <div class="metric-card">
+            <div class="value">{{ replay.mods }}</div>
+            <div class="label">Mods</div>
+            <div class="hint">{{ replay.score|int }} score</div>
         </div>
     </div>
 
-    <!-- Таблица Snaps с визуализацией -->
-    <div class="card card-snaps p-4 mb-4">
-        <h4 class="mb-3">🎯 Suspicious Movements (Snaps)</h4>
+    <!-- Stability Chart -->
+    <div class="card fade-in" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+        <h4 style="margin-bottom: 1rem;">📈 Timing Stability</h4>
+        <canvas id="frametimeChart" height="100"></canvas>
+        <p class="text-muted small text-center mt-2">Flatter line = more consistent timing</p>
+    </div>
+
+    <!-- Snaps Section -->
+    <div class="card fade-in" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+        <h4 style="margin-bottom: 1rem;">🎯 Suspicious Movements</h4>
         
         {% if replay.snaps and replay.snaps|length > 0 %}
-        <!-- Мини-график snaps -->
-        <div class="snaps-visualization mb-3">
-            <canvas id="snapsChart" height="60"></canvas>
+        <div style="margin-bottom: 1rem;">
+            <canvas id="snapsChart" height="80"></canvas>
         </div>
         
         <div class="table-responsive">
-            <table class="table table-sm table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>#</th>
-                        <th>Frame</th>
-                        <th>Angle (deg)</th>
-                        <th>Distance (px)</th>
-                        <th>Status</th>
-                    </tr>
+            <table class="snaps-table">
+                <thead>
+                    <tr><th>#</th><th>Frame</th><th>Angle</th><th>Distance</th><th>Status</th></tr>
                 </thead>
                 <tbody>
-                    {% for snap in replay.snaps[:50] %}  <!-- Показываем только первые 50, остальные скролл -->
-                    <tr class="table-{{ snap.severity }}">
+                    {% for snap in replay.snaps[:50] %}
+                    <tr class="severity-{{ snap.severity }}">
                         <td>{{ loop.index }}</td>
                         <td>{{ snap.frame }}</td>
-                        <td>{{ "%.2f"|format(snap.angle) }}</td>
-                        <td>{{ "%.2f"|format(snap.distance) }}</td>
-                        <td>
-                            {% if snap.severity == 'danger' %}
-                            ⚠️ Critical
-                            {% elif snap.severity == 'warning' %}
-                            ⚡ Warning
-                            {% else %}
-                            ✓ Normal
-                            {% endif %}
-                        </td>
+                        <td>{{ "%.2f"|format(snap.angle) }}°</td>
+                        <td>{{ "%.2f"|format(snap.distance) }}px</td>
+                        <td>{% if snap.severity == 'danger' %}⚠️ Critical{% elif snap.severity == 'warning' %}⚡ Warning{% else %}✓ Normal{% endif %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
             {% if replay.snaps|length > 50 %}
-            <p class="text-muted small">... and {{ replay.snaps|length - 50 }} more snaps (scroll to see all)</p>
+            <p class="text-muted small mt-2">... and {{ replay.snaps|length - 50 }} more</p>
             {% endif %}
         </div>
         {% else %}
-        <p class="text-muted mb-0">No suspicious movements detected ✓</p>
+        <p class="text-muted">No suspicious movements detected ✓</p>
         {% endif %}
     </div>
 
-    <!-- Кнопки действий -->
-    <div class="text-center mb-4">
-        <a href="/circleguard" class="btn btn-primary">
-            ← Analyze Another Replay
-        </a>
-        <button onclick="window.print()" class="btn btn-secondary ms-2">
-            🖨️ Export as PDF
-        </button>
+    <!-- Actions -->
+    <div class="actions" style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem;">
+        <a href="/circleguard" class="btn btn-secondary">← Analyze Another</a>
+        <button onclick="window.print()" class="btn btn-primary">🖨️ Export as PDF</button>
     </div>
-
 </div>
 
 <script>
-// Ждём загрузки страницы
 document.addEventListener('DOMContentLoaded', function() {
     const cacheId = "{{ replay.cache_id }}";
     
-    // Загружаем данные для графика frametimes
     if (cacheId) {
         fetch(`/circleguard/api/frametimes/${cacheId}`)
             .then(res => res.json())
@@ -159,8 +122,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             datasets: [{
                                 label: 'Frame Time (ms)',
                                 data: data.frametimes,
-                                borderColor: '#00adb5',
-                                backgroundColor: 'rgba(0, 173, 181, 0.1)',
+                                borderColor: '#ff66aa',
+                                backgroundColor: 'rgba(255, 102, 170, 0.1)',
                                 fill: true,
                                 tension: 0.1,
                                 pointRadius: 0
@@ -169,37 +132,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         options: {
                             responsive: true,
                             maintainAspectRatio: true,
-                            plugins: {
-                                legend: { position: 'top' },
-                                tooltip: {
-                                    callbacks: {
-                                        label: (ctx) => `${ctx.raw.toFixed(2)} ms`
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    title: { display: true, text: 'Frame Time (ms)' }
-                                },
-                                x: {
-                                    title: { display: true, text: 'Frame Number' }
-                                }
-                            }
+                            plugins: { legend: { position: 'top' } }
                         }
                     });
-                } else {
-                    document.getElementById('frametimeChart').parentElement.innerHTML = 
-                        '<p class="text-muted text-center">No frame time data available</p>';
                 }
-            })
-            .catch(err => {
-                console.error('Failed to load frametimes:', err);
-                document.getElementById('frametimeChart').parentElement.innerHTML = 
-                    '<p class="text-muted text-center">Frame time data unavailable</p>';
             });
     }
     
-    // Мини-график для snaps (scatter plot)
     {% if replay.snaps and replay.snaps|length > 0 %}
     const snapData = {{ replay.snaps|tojson }};
     const snapCtx = document.getElementById('snapsChart').getContext('2d');
@@ -209,36 +148,15 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Snaps',
                 data: snapData.map(s => ({x: s.angle, y: s.distance})),
-                backgroundColor: snapData.map(s => 
-                    s.severity === 'danger' ? '#dc3545' : 
-                    s.severity === 'warning' ? '#fd7e14' : '#28a745'
-                ),
-                pointRadius: 5,
-                pointHoverRadius: 8
+                backgroundColor: snapData.map(s => s.severity === 'danger' ? '#ff4444' : (s.severity === 'warning' ? '#ffaa44' : '#4caf50')),
+                pointRadius: 5
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => `Angle: ${ctx.parsed.x.toFixed(2)}°, Distance: ${ctx.parsed.y.toFixed(2)}px`
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    title: { display: true, text: 'Angle (degrees)' },
-                    min: 0,
-                    max: 15
-                },
-                y: {
-                    title: { display: true, text: 'Distance (pixels)' },
-                    min: 0
-                }
-            }
+            plugins: { legend: { display: false } },
+            scales: { x: { title: { display: true, text: 'Angle (degrees)' }, max: 15 }, y: { title: { display: true, text: 'Distance (px)' } } }
         }
     });
     {% endif %}

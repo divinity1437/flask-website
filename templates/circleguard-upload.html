@@ -6,33 +6,88 @@
 
 {% block body %}
 <div class="container">
-    <div class="card">
-        <h1 class="mb-4">Circleguard Replay Upload</h1>
+    <div class="upload-container fade-in" style="max-width: 600px; margin: 2rem auto;">
+        <div class="card" style="text-align: center; padding: 2rem;">
+            <div class="upload-icon" style="font-size: 4rem; margin-bottom: 1rem;">🎮</div>
+            <h1 class="mb-3" style="font-size: 1.8rem;">Replay Analysis</h1>
+            <p class="text-muted mb-4">Upload an osu! replay file (.osr) to analyze performance metrics</p>
 
-        <form method="POST" enctype="multipart/form-data" id="uploadForm" class="d-flex flex-column align-items-center">
-            <label for="fileInput" class="btn-upload w-100 mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload me-2" viewBox="0 0 16 16">
-                  <path d="M.5 9.9a.5.5 0 0 1 .5-.5h3v5h8v-5h3a.5.5 0 0 1 0 1h-3v5h-8v-5h-3a.5.5 0 0 1-.5-.5z"/>
-                  <path d="M7.646 1.146a.5.5 0 0 1 .708 0L10.5 3.293V10.5a.5.5 0 0 1-1 0V4.707L8 2.707 5.5 4.707V10.5a.5.5 0 0 1-1 0V3.293l2.146-2.147z"/>
-                </svg>
-                Choose Replay File (.osr)
-            </label>
-            <input type="file" name="file" id="fileInput" accept=".osr" required style="display:none;">
+            <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                <div class="file-drop-zone" id="dropZone" 
+                     style="border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: var(--border-radius); padding: 2rem; margin-bottom: 1.5rem; cursor: pointer; transition: var(--transition);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-cloud-upload mb-3" viewBox="0 0 16 16" style="color: var(--primary);">
+                        <path d="M4.406 1.342C5.512 0 7.147 0 8 0s2.488 0 3.594 1.342c1.125 1.354 1.406 3.218.625 4.92.729.28 1.28.926 1.476 1.753.277.98.13 2.087-.594 2.92-.723.833-1.86 1.316-3.063 1.316H3.962c-1.203 0-2.34-.483-3.063-1.316-.725-.833-.871-1.94-.594-2.92.195-.827.747-1.473 1.476-1.753-.78-1.702-.5-3.566.625-4.92zM8 1.5c-.679 0-1.793.192-2.606 1.139-1.013 1.22-1.33 2.914-.886 4.279.109.335.033.674-.176.935-.439.546-.626 1.253-.451 1.874.174.62.654 1.09 1.306 1.273L5.5 11h5c.652-.183 1.132-.653 1.306-1.273.175-.621-.012-1.328-.451-1.874-.209-.261-.285-.6-.176-.935.444-1.365.127-3.059-.886-4.279C9.793 1.692 8.679 1.5 8 1.5zM8 4a.5.5 0 0 1 .5.5V7h2a.5.5 0 0 1 0 1h-2v2.5a.5.5 0 0 1-1 0V8h-2a.5.5 0 0 1 0-1h2V4.5A.5.5 0 0 1 8 4z"/>
+                    </svg>
+                    <p class="mb-2"><strong>Drag & drop</strong> your .osr file here</p>
+                    <p class="text-muted small">or click to browse</p>
+                    <input type="file" name="file" id="fileInput" accept=".osr" required style="display: none;">
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100" id="submitBtn" disabled style="padding: 0.85rem;">
+                    <span id="btnText">Select a file to upload</span>
+                </button>
+            </form>
 
-            <button type="submit" class="btn-primary w-100">Upload Replay</button>
-        </form>
-
-        {% if error %}
-            <p class="text-danger">{{ error }}</p>
-        {% endif %}
-
-        {% if success %}
-            <p class="text-success">{{ success }}</p>
-        {% endif %}
-    </div>
-
-    <div class="text-center mb-4">
-        <a href="/" class="btn-secondary">⬅ Back to Home</a>
+            {% if error %}
+            <div class="error-message" style="margin-top: 1rem; padding: 0.75rem; background: rgba(255, 68, 68, 0.15); border: 1px solid var(--danger); border-radius: 12px; color: var(--danger);">
+                {{ error }}
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
+
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const form = document.getElementById('uploadForm');
+
+    // Клик по зоне = выбор файла
+    dropZone.addEventListener('click', () => fileInput.click());
+    
+    // Drag & drop подсветка
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--primary)';
+        dropZone.style.background = 'rgba(255, 102, 170, 0.05)';
+    });
+    
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        dropZone.style.background = 'transparent';
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        dropZone.style.background = 'transparent';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].name.endsWith('.osr')) {
+            fileInput.files = files;
+            btnText.textContent = `✅ ${files[0].name}`;
+            submitBtn.disabled = false;
+        } else {
+            btnText.textContent = '❌ Please select a valid .osr file';
+        }
+    });
+    
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            btnText.textContent = `✅ ${fileInput.files[0].name}`;
+            submitBtn.disabled = false;
+        } else {
+            btnText.textContent = 'Select a file to upload';
+            submitBtn.disabled = true;
+        }
+    });
+    
+    form.addEventListener('submit', () => {
+        submitBtn.disabled = true;
+        btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+    });
+</script>
 {% endblock %}

@@ -1,113 +1,120 @@
-/* Card для beatmap */
-.card-beatmap {
-    border: none;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+/* Circleguard специфичные стили */
+
+/* Upload page */
+.file-drop-zone:hover {
+    border-color: var(--primary) !important;
+    background: rgba(255, 102, 170, 0.05) !important;
 }
 
-.card-beatmap .card-body {
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(5px);
-}
-
-/* Metric Cards */
+/* Metric cards */
 .metric-card {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 15px;
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: 1rem;
     text-align: center;
-    transition: transform 0.2s;
-    border-left: 4px solid #6c757d;
+    transition: var(--transition);
+    border-left: 3px solid var(--text-secondary);
 }
 
 .metric-card:hover {
     transform: translateY(-3px);
 }
 
-.metric-value {
-    font-size: 28px;
-    font-weight: bold;
+.metric-card .value {
+    font-size: 1.8rem;
+    font-weight: 700;
     font-family: monospace;
 }
 
-.metric-label {
-    font-size: 14px;
-    color: #6c757d;
-    margin-top: 5px;
+.metric-card .label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
 }
 
-.metric-hint {
-    font-size: 11px;
-    color: #adb5bd;
-    margin-top: 3px;
+.metric-card .hint {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
 }
 
-.metric-success {
-    border-left-color: #28a745;
+.metric-card.success { border-left-color: var(--success); }
+.metric-card.warning { border-left-color: var(--warning); }
+.metric-card.danger { border-left-color: var(--danger); }
+
+/* Snaps table */
+.snaps-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.metric-warning {
-    border-left-color: #fd7e14;
+.snaps-table th,
+.snaps-table td {
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.metric-danger {
-    border-left-color: #dc3545;
+.snaps-table th {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.75rem;
 }
 
-/* Общая карточка */
-.card-summary, .card-snaps {
-    border-radius: 16px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+.snaps-table tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.snaps-table .severity-danger {
+    background: rgba(255, 68, 68, 0.1);
+}
+
+.snaps-table .severity-warning {
+    background: rgba(255, 170, 68, 0.1);
+}
+
+/* Beatmap card */
+.beatmap-card {
+    overflow: hidden;
+}
+
+/* Buttons */
+.btn-primary, .btn-secondary {
+    padding: 0.6rem 1.2rem;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
+    display: inline-block;
+    cursor: pointer;
     border: none;
 }
 
-/* Snaps таблица */
-.table-hover tbody tr:hover {
-    background-color: rgba(0,173,181,0.05);
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
 }
 
-.table-danger {
-    background-color: #f8d7da !important;
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
 }
 
-.table-warning {
-    background-color: #fff3cd !important;
+.btn-primary:hover, .btn-secondary:hover {
+    transform: translateY(-2px);
 }
 
-/* Анимация загрузки (если добавишь) */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #00adb5;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 20px auto;
-}
-
-/* Для печати */
+/* Print styles */
 @media print {
-    .btn, .card-beatmap a {
+    .navbar, .actions, .btn, .beatmap-card a {
         display: none;
     }
-    .container {
-        max-width: 100%;
-        padding: 0;
+    body {
+        background: white;
+        color: black;
     }
     .metric-card {
         break-inside: avoid;
+        background: #f0f0f0;
     }
-}
-
-/* Snaps визуализация */
-.snaps-visualization {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 10px;
 }
