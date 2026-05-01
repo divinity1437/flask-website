@@ -1,5 +1,3 @@
-/* Circleguard специфичные стили */
-
 /* Upload page */
 .file-drop-zone:hover {
     border-color: var(--primary) !important;
