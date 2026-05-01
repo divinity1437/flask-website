@@ -430,9 +430,9 @@ function showScoreDetails(element) {
     document.getElementById('modalMiss').textContent = scoreData.nmiss || 0;
     
     // Доп. информация
-    if (scoreData.play_time) {
+    if (scoreData.created_at) {
         try {
-            const date = new Date(scoreData.play_time);
+            const date = new Date(scoreData.created_at);
             if (!isNaN(date.getTime())) {
                 document.getElementById('modalDate').textContent = `📅 ${date.toLocaleDateString()}`;
             } else {
