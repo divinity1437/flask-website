@@ -40,6 +40,7 @@
                         </div>
                         <input type="hidden" name="server" id="serverInput" value="{{ server }}">
                     </div>
+
                     <!-- Okayu mode selector -->
                     <div class="submode-selector" id="submodeSelector" style="flex: 1; {% if server != 'okayu' %}display: none;{% endif %}">
                         <label>Sub-mode</label>
@@ -181,7 +182,9 @@
             {% if top_scores %}
             <div class="scores-list">
                 {% for score in top_scores[:5] %}
-                <div class="score-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); background-size: cover; background-position: center; position: relative;">
+                <div class="score-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); background-size: cover; background-position: center; position: relative; cursor: pointer;" 
+                     onclick="showScoreDetails(this)"
+                     data-score='{{ score|tojson }}'>
                     <div style="position: absolute; inset: 0; background: linear-gradient(90deg, rgba(26,26,46,0.95), rgba(26,26,46,0.85)); z-index: 0;"></div>
                     <div class="score-info" style="position: relative; z-index: 1;">
                         <div class="score-map" style="font-weight: 600;">
@@ -220,6 +223,63 @@
     {% endif %}
 </div>
 
+<!-- Modal Window for Score Details -->
+<div id="scoreModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: var(--bg-card); border-radius: var(--border-radius); max-width: 500px; width: 90%; margin: auto; position: relative; animation: fadeInUp 0.3s ease;">
+        <div class="modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0;">🎯 Score Details</h3>
+            <button class="modal-close" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; transition: var(--transition);">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem;">
+            <div id="modalContent">
+                <div class="modal-beatmap" style="margin-bottom: 1rem;">
+                    <div id="modalBeatmapBg" style="height: 120px; background-size: cover; background-position: center; border-radius: 12px; margin-bottom: 1rem;"></div>
+                    <h4 id="modalBeatmapTitle" style="margin-bottom: 0.25rem;">Loading...</h4>
+                    <p id="modalBeatmapDiff" style="color: var(--text-secondary); font-size: 0.85rem;"></p>
+                </div>
+                
+                <div class="modal-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div class="stat-item" style="text-align: center; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 0.5rem;">
+                        <div id="modalPP" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">0</div>
+                        <div class="stat-label" style="font-size: 0.65rem;">PP</div>
+                    </div>
+                    <div class="stat-item" style="text-align: center; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 0.5rem;">
+                        <div id="modalScore" style="font-size: 1rem; font-weight: 700;">0</div>
+                        <div class="stat-label" style="font-size: 0.65rem;">Score</div>
+                    </div>
+                    <div class="stat-item" style="text-align: center; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 0.5rem;">
+                        <div id="modalAcc" style="font-size: 1rem; font-weight: 700;">0%</div>
+                        <div class="stat-label" style="font-size: 0.65rem;">Accuracy</div>
+                    </div>
+                    <div class="stat-item" style="text-align: center; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 0.5rem;">
+                        <div id="modalMods" style="font-size: 0.9rem; font-weight: 700;">NM</div>
+                        <div class="stat-label" style="font-size: 0.65rem;">Mods</div>
+                    </div>
+                </div>
+                
+                <div class="modal-hitstats" style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+                    <h5 style="margin-bottom: 0.75rem; font-size: 0.85rem;">📊 Hit Statistics</h5>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; text-align: center;">
+                        <div><span style="color: #4caf50;">300</span><br><strong id="modal300">0</strong></div>
+                        <div><span style="color: #ff9800;">100</span><br><strong id="modal100">0</strong></div>
+                        <div><span style="color: #2196f3;">50</span><br><strong id="modal50">0</strong></div>
+                        <div><span style="color: #f44336;">Miss</span><br><strong id="modalMiss">0</strong></div>
+                    </div>
+                </div>
+                
+                <div class="modal-info" style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    <span id="modalDate">📅 Date unknown</span>
+                    <span id="modalCombo">⚡ Max Combo: 0</span>
+                </div>
+                
+                <div class="modal-actions" style="display: flex; gap: 0.75rem;">
+                    <a href="#" id="modalBeatmapLink" class="btn-download" target="_blank" style="flex: 1; text-align: center; background: rgba(255,255,255,0.1); padding: 0.6rem; border-radius: 12px; text-decoration: none; color: white; transition: var(--transition);">📥 Download Beatmap</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function selectMode(mode) {
     document.getElementById('modeInput').value = mode;
@@ -248,9 +308,22 @@ document.querySelectorAll('.server-btn').forEach(btn => {
         document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('serverInput').value = btn.dataset.server;
+        
+        // Показываем/скрываем подрежим
+        const submodeSelector = document.getElementById('submodeSelector');
+        if (submodeSelector) {
+            if (btn.dataset.server === 'okayu') {
+                submodeSelector.style.display = 'block';
+            } else {
+                submodeSelector.style.display = 'none';
+                document.getElementById('submodeInput').value = '0';
+            }
+        }
+        document.getElementById('lookupForm').submit();
     };
 });
 
+// Submode dropdown
 const submodeBtn = document.getElementById('submodeBtn');
 const submodeMenu = document.getElementById('submodeMenu');
 const submodeInput = document.getElementById('submodeInput');
@@ -277,33 +350,94 @@ if (submodeBtn) {
             submodeBtn.innerHTML = `${icon} ${name} <span style="margin-left: 0.5rem;">▼</span>`;
             
             document.querySelectorAll('.submode-option').forEach(o => {
-                o.querySelector('.check')?.remove();
+                const check = o.querySelector('.check');
+                if (check) check.remove();
             });
             opt.insertAdjacentHTML('beforeend', '<span class="check">✓</span>');
             
             submodeMenu.classList.remove('show');
-            
             document.getElementById('lookupForm').submit();
         });
     });
 }
 
-const serverBtns = document.querySelectorAll('.server-btn');
-serverBtns.forEach(btn => {
-    const originalClick = btn.onclick;
-    btn.onclick = () => {
-        const server = btn.dataset.server;
-        if (submodeSelector) {
-            if (server === 'okayu') {
-                submodeSelector.style.display = 'block';
-            } else {
-                submodeSelector.style.display = 'none';
-                document.getElementById('submodeInput').value = '0';
-            }
-        }
-        if (originalClick) originalClick();
-    };
-});
+// Modal functionality
+const modal = document.getElementById('scoreModal');
+const modalClose = document.querySelector('.modal-close');
 
+function showScoreDetails(element) {
+    let scoreData;
+    try {
+        scoreData = JSON.parse(element.getAttribute('data-score'));
+    } catch(e) {
+        console.error('Failed to parse score data:', e);
+        return;
+    }
+    
+    const beatmap = scoreData.beatmap || {};
+    const beatmapset = scoreData.beatmapset || {};
+    
+    // Название и дифф
+    const title = (beatmap.artist && beatmap.title) 
+        ? `${beatmap.artist} - ${beatmap.title}`
+        : beatmapset.title || 'Unknown Beatmap';
+    document.getElementById('modalBeatmapTitle').textContent = title;
+    document.getElementById('modalBeatmapDiff').textContent = beatmap.version || 'Unknown Difficulty';
+    
+    // Фон карты
+    const beatmapsetId = beatmap.beatmapset_id || beatmapset.id || scoreData.beatmapset_id;
+    const beatmapId = beatmap.id || scoreData.beatmap_id;
+    const bgElem = document.getElementById('modalBeatmapBg');
+    const linkElem = document.getElementById('modalBeatmapLink');
+    
+    if (beatmapsetId) {
+        bgElem.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${beatmapsetId}/covers/cover.jpg')`;
+        bgElem.style.backgroundSize = 'cover';
+        bgElem.style.backgroundPosition = 'center';
+        linkElem.href = `https://osu.ppy.sh/beatmapsets/${beatmapsetId}#osu/${beatmapId || ''}`;
+    } else {
+        bgElem.style.background = 'linear-gradient(135deg, var(--primary-dark), var(--primary))';
+    }
+    
+    // Статистика
+    document.getElementById('modalPP').textContent = scoreData.pp ? `${Math.round(scoreData.pp)}pp` : '0pp';
+    document.getElementById('modalScore').textContent = scoreData.score ? scoreData.score.toLocaleString() : '0';
+    document.getElementById('modalAcc').textContent = scoreData.acc ? `${scoreData.acc.toFixed(2)}%` : '0%';
+    document.getElementById('modalMods').textContent = scoreData.mods_readable || 'NM';
+    
+    // Хиты
+    document.getElementById('modal300').textContent = scoreData.n300 || 0;
+    document.getElementById('modal100').textContent = scoreData.n100 || 0;
+    document.getElementById('modal50').textContent = scoreData.n50 || 0;
+    document.getElementById('modalMiss').textContent = scoreData.nmiss || 0;
+    
+    // Доп. информация
+    if (scoreData.play_time) {
+        const date = new Date(scoreData.play_time);
+        document.getElementById('modalDate').textContent = `📅 ${date.toLocaleDateString()}`;
+    } else {
+        document.getElementById('modalDate').textContent = '📅 Date unknown';
+    }
+    
+    const maxCombo = scoreData.max_combo || scoreData.maxcombo || 0;
+    document.getElementById('modalCombo').textContent = `⚡ Max Combo: ${maxCombo}x`;
+    
+    // Показываем модальное окно
+    modal.style.display = 'flex';
+}
+
+// Закрытие модального окна
+if (modalClose) {
+    modalClose.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+}
+
+// Закрытие при клике вне окна
+window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
+});
 </script>
 {% endblock %}

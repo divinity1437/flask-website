@@ -1,3 +1,6 @@
+/* Специфичные стили только для inspector, общие в main.css */
+
+/* Иконки режимов */
 @font-face {
     font-family: 'osu-mode';
     src: url('/static/fonts/extra.ttf') format('truetype');
@@ -100,6 +103,12 @@
     padding: 0.5rem 1rem;
     border-radius: 30px;
     cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.my-profile-btn:hover {
+    background: rgba(255, 102, 170, 0.1);
+    transform: translateY(-2px);
 }
 
 /* Submode Dropdown Styles */
@@ -189,4 +198,182 @@
 .submode-info small {
     font-size: 0.7rem;
     color: var(--text-secondary);
+}
+
+/* Modal Window Styles */
+.modal {
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    color: var(--primary);
+    transform: scale(1.1);
+}
+
+.modal-beatmap-bg {
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-beatmap-bg::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(to top, var(--bg-card), transparent);
+}
+
+/* Score item hover effect */
+.score-item {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.score-item:hover {
+    transform: translateX(4px);
+}
+
+.modal-stats .stat-item {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 0.5rem;
+}
+
+.modal-hitstats {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.modal-hitstats h5 {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.modal-actions .btn-download {
+    transition: all 0.2s ease;
+}
+
+.modal-actions .btn-download:hover {
+    background: var(--primary) !important;
+    transform: translateY(-2px);
+}
+
+/* Пустой профиль */
+.empty-profile {
+    text-align: center;
+    padding: 4rem;
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+}
+
+.empty-profile div {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-profile h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.empty-profile p {
+    color: var(--text-secondary);
+}
+
+/* Профиль */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 1.5rem;
+}
+
+.profile-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.scores-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.scores-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.scores-header h3 {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.stat-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.stat-label {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+}
+
+/* Ошибка */
+.error-message {
+    background: rgba(255, 68, 68, 0.15);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    padding: 0.75rem;
+    border-radius: 12px;
+    margin-top: 1rem;
+}
+
+/* Адаптивность */
+@media (max-width: 900px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-wrapper {
+        flex-direction: column;
+    }
+    
+    .search-input-group,
+    .mode-selector,
+    .server-selector,
+    .submode-selector {
+        width: 100%;
+    }
+    
+    .search-button {
+        width: 100%;
+    }
 }
