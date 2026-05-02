@@ -125,7 +125,7 @@ For production use Gunicorn (or Waitress) behind a reverse proxy like Nginx.
 
 ### ⚠️ License & Status
 
-No license. This repository is exclusively for my personal learning. It is not open‑source in the traditional sense — you may read the code for educational purposes, but you are not granted permission to redistribute, host, or use it commercially.
+This project is for self-education purposes only. The code can be used and read, but it should not be used in commercial endeavors without permission.
 
 ### The project is under active development and may change without notice.
 🙏 Credits
