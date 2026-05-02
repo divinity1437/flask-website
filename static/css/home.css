@@ -64,6 +64,7 @@ ul li a {
     opacity: 0.4;
     filter: alpha(opacity=40);
     text-decoration:none;
+    filter: invert(100%);
 }
 
 .title-logo:hover{
