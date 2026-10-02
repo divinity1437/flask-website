@@ -10,7 +10,7 @@ auth_bp = Blueprint('auth', __name__)
 
 CLIENT_ID = os.environ.get("OSU_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("OSU_CLIENT_SECRET")
-REDIRECT_URI = os.environ.get("OSU_REDIRECT_URI", "https://owouser.okayu.click/auth/callback")
+REDIRECT_URI = os.environ.get("OSU_REDIRECT_URI", "https://owouser.osuokayu.pw/auth/callback")
 
 @auth_bp.route('/auth/login')
 def login():
@@ -67,6 +67,9 @@ def callback():
         }
     else:
         return f"Failed to get user data: {user_response.text}", 400
+
+    if session.pop('after_osu_login', None) == 'donations.connect':
+        return redirect(url_for('donations.connect'))
 
     return redirect(url_for('inspector.inspector_index', username=session['user']['username']))
 

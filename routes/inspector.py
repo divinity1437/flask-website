@@ -1,7 +1,7 @@
 import requests
 import time
 import os
-from flask import Blueprint, render_template, request, session
+from flask import Blueprint, render_template, request, session, jsonify, Response
 
 inspector_bp = Blueprint('inspector', __name__, template_folder='../templates')
 
@@ -14,9 +14,9 @@ MODES = {
 
 # Подрежимы для Okayu сервера
 SUBMODES_OKAYU = {
-    0: {"name": "Vanilla", "icon": "🎯", "description": "Standard gameplay"},
-    4: {"name": "Relax", "icon": "😌", "description": "Auto-aim, manual tap"},
-    8: {"name": "Autopilot", "icon": "🤖", "description": "Auto-tap, manual aim"},
+    0: {"name": "Vanilla", "icon": "🎯", "description": "Standard"},
+    4: {"name": "Relax", "icon": "😌", "description": "Manual aim, auto tap"},
+    8: {"name": "Autopilot", "icon": "🤖", "description": "Auto aim, manual tap"},
 }
 
 # Глобальная переменная для хранения токена Bancho API
@@ -137,7 +137,7 @@ def transform_bancho_data(bancho_user, mode):
 
 def get_osu_user_okayu(username):
     """Get player info from Okayu API"""
-    url = f"https://api.okayu.click/v1/get_player_info?name={username}&scope=all"
+    url = f"https://api.osuokayu.pw/v1/get_player_info?name={username}&scope=all"
     try:
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
@@ -155,8 +155,8 @@ def get_osu_user_okayu(username):
                 if "info" in player:
                     user_id = player["info"].get("id")
                     if user_id:
-                        player["info"]["cover_url"] = f"https://okayu.click/banners/{user_id}"
-                        player["info"]["avatar_url"] = f"https://a.okayu.click/{user_id}"
+                        player["info"]["cover_url"] = f"https://osuokayu.pw/banners/{user_id}"
+                        player["info"]["avatar_url"] = f"https://a.osuokayu.pw/{user_id}"
                 return player
         return None
     except Exception as e:
@@ -165,7 +165,7 @@ def get_osu_user_okayu(username):
 
 def get_player_status_okayu(username):
     """Get player online status from Okayu API"""
-    url = f"https://api.okayu.click/v1/get_player_status?name={username}"
+    url = f"https://api.osuokayu.pw/v1/get_player_status?name={username}"
     try:
         response = requests.get(url, timeout=5)
         data = response.json()
@@ -187,7 +187,7 @@ def get_player_status_okayu(username):
 
 def get_top_scores_okayu(username, mode=0, limit=5):
     """Get top scores from Okayu API with mode support"""
-    url = f"https://api.okayu.click/v1/get_player_scores?name={username}&scope=best&limit={limit}&mode={mode}"
+    url = f"https://api.osuokayu.pw/v1/get_player_scores?name={username}&scope=best&limit={limit}&mode={mode}"
     try:
         resp = requests.get(url, timeout=10)
         data = resp.json()
@@ -254,6 +254,8 @@ def get_top_scores_bancho(username, mode=0, limit=5):
                     "nkatu": statistics.get("count_katu", 0),
                     "rank": score.get("rank", "F"),
                     "created_at": score.get("created_at", ""),
+                    "id": score.get("id", 0),
+                    "has_replay": bool(score.get("replay", False)),
                     "beatmap_id": score.get("beatmap", {}).get("id", 0),
                     "beatmapset_id": score.get("beatmap", {}).get("beatmapset_id", 0),
                     "beatmap": {
@@ -360,3 +362,79 @@ def inspector_index():
         submode_options=SUBMODES_OKAYU,
         session_user=session.get('user')
     )
+
+
+@inspector_bp.route("/inspector/replay/available")
+def replay_available():
+    """Проверяет, доступен ли реплей для данного score (используется Okayu)."""
+    server = request.args.get("server", "okayu")
+    score_id = request.args.get("score_id", type=int)
+
+    if not score_id or server != "okayu":
+        return jsonify({"available": False})
+
+    # В API Okayu нет отдельного флага наличия реплея,
+    # поэтому проверяем сам эндпоинт отдачи реплея (без скачивания тела).
+    try:
+        url = f"https://api.osuokayu.pw/v1/get_replay?id={score_id}"
+        resp = requests.get(url, timeout=15, stream=True)
+        available = resp.status_code == 200 and next(resp.iter_content(chunk_size=1), b"") != b""
+        resp.close()
+    except Exception as e:
+        print(f"Replay availability check failed: {e}")
+        available = False
+
+    return jsonify({"available": available})
+
+
+@inspector_bp.route("/inspector/replay/<server>/<int:score_id>")
+def download_replay(server, score_id):
+    """Проксирует скачивание реплея (.osr) для Bancho или Okayu."""
+    download_url = None
+    headers = {}
+
+    if server == "bancho":
+        token = get_bancho_token()
+        if not token:
+            return "Replay unavailable.", 404
+        mode_str = MODES.get(request.args.get("mode", type=int) or 0, "osu")
+        download_url = f"https://osu.ppy.sh/api/v2/scores/{mode_str}/{score_id}/download"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/octet-stream",
+        }
+    elif server == "okayu":
+        download_url = f"https://api.osuokayu.pw/v1/get_replay?id={score_id}"
+    else:
+        return "Unknown server.", 404
+
+    try:
+        resp = requests.get(download_url, headers=headers, timeout=30)
+        if server == "bancho" and resp.status_code == 404:
+            api_error = resp.text[:300]
+            resp = requests.get(
+                f"https://osu.ppy.sh/scores/{score_id}/download",
+                headers=headers,
+                timeout=30,
+            )
+            if resp.status_code != 200:
+                print(
+                    f"Bancho replay download failed via API and website routes: "
+                    f"API HTTP 404 - {api_error}; website HTTP {resp.status_code} "
+                    f"({resp.url}) - {resp.text[:300]}"
+                )
+    except Exception as e:
+        print(f"Replay download failed: {e}")
+        return "Replay unavailable.", 404
+
+    if resp.status_code != 200 or not resp.content:
+        if server != "bancho" or resp.status_code != 404:
+            print(
+                f"Replay download rejected by {server}: "
+                f"HTTP {resp.status_code} ({resp.url}) - {resp.text[:300]}"
+            )
+        return "Replay unavailable.", 404
+
+    file_resp = Response(resp.content, mimetype="application/x-osu-replay")
+    file_resp.headers["Content-Disposition"] = f"attachment; filename=replay_{score_id}.osr"
+    return file_resp

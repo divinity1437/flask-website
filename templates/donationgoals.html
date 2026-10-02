@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Donation Goals | osu! Tools{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/donationgoals.css') }}">
+{% endblock %}
+
+{% block body %}
+<section class="donation-page">
+    <header class="donation-heading">
+        <p class="donation-eyebrow">DONATIONALERTS</p>
+        <h1>Donation Goals</h1>
+        <a class="donation-open" href="{{ url_for('donations.connect') }}">
+            Connect DonationAlerts
+            <span aria-hidden="true">↗</span>
+        </a>
+    </header>
+    <section class="donation-widget" aria-label="Current fundraising goal" data-goal-widget>
+        <p class="goal-status" data-goal-status>Waiting for goal data</p>
+        <h2 data-goal-title>Donation goal</h2>
+        <div class="goal-progress" role="progressbar" aria-label="Donation goal progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <span data-goal-progress></span>
+        </div>
+        <p class="goal-amounts"><span data-goal-raised>--</span><span data-goal-target>--</span></p>
+    </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/donationgoals.js') }}"></script>
+{% endblock %}
