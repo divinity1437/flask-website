@@ -10,6 +10,7 @@
     <div class="search-container fade-in">
         <div class="search-card">
             <form id="lookupForm" method="POST" class="search-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="search-wrapper" style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     <div class="search-input-group" style="flex: 2; min-width: 250px;">
                         <label>Username or ID</label>
@@ -136,7 +137,7 @@
             <div class="profile-info" style="padding: 0.5rem 1.5rem 1.5rem 1.5rem; text-align: center;">
                 <h2 style="font-size: 1.4rem; margin-bottom: 0.25rem;">{{ user.info.name }}</h2>
                 <div class="country-badge" style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.05); padding: 0.25rem 0.75rem; border-radius: 20px; margin-top: 0.25rem;">
-                    <img src="https://osuokayu.pw/static/images/flags/{{ user.info.country|upper }}.png" alt="Country" style="width: 20px; border-radius: 4px;">
+                    <img src="https://osuokayu.pw/static/images/flags/{{ user.info.country|upper|replace('/', '')|replace('\\', '') }}.png" alt="Country" style="width: 20px; border-radius: 4px;">
                     <span style="font-size: 0.85rem;">{{ user.info.country_code if user.info.country_code else user.info.country }}</span>
                 </div>
 
@@ -273,8 +274,8 @@
                 </div>
                 
                 <div class="modal-actions" style="display: flex; gap: 0.75rem;">
-                    <a href="#" id="modalBeatmapLink" class="btn-download" target="_blank" style="flex: 1; text-align: center; background: rgba(255,255,255,0.1); padding: 0.6rem; border-radius: 12px; text-decoration: none; color: white; transition: var(--transition);">📥 Download Beatmap</a>
-                    <a href="#" id="modalReplayLink" class="btn-download" target="_blank" style="flex: 1; text-align: center; background: rgba(255,255,255,0.1); padding: 0.6rem; border-radius: 12px; text-decoration: none; color: white; transition: var(--transition);">🎮 Download Replay</a>
+                        <a href="#" id="modalBeatmapLink" class="btn-download" target="_blank" rel="noopener noreferrer" style="flex: 1; text-align: center; background: rgba(255,255,255,0.1); padding: 0.6rem; border-radius: 12px; text-decoration: none; color: white; transition: var(--transition);">📥 Download Beatmap</a>
+                    <a href="#" id="modalReplayLink" class="btn-download" target="_blank" rel="noopener noreferrer" style="flex: 1; text-align: center; background: rgba(255,255,255,0.1); padding: 0.6rem; border-radius: 12px; text-decoration: none; color: white; transition: var(--transition);">🎮 Download Replay</a>
                 </div>
             </div>
         </div>
@@ -283,7 +284,7 @@
 
 <script>
 
-const server = "{{ server }}";
+const server = {{ server|tojson }};
 const currentMode = {{ mode|int }};
 
 function selectMode(mode) {
@@ -292,7 +293,7 @@ function selectMode(mode) {
 }
 
 function fillMyProfile() {
-    document.getElementById('username').value = "{{ session_user.username if session_user else '' }}";
+    document.getElementById('username').value = {{ (session_user.username if session_user else '')|tojson }};
     document.getElementById('serverInput').value = "bancho";
     document.getElementById('lookupForm').submit();
 }
@@ -437,8 +438,6 @@ function showScoreDetails(element) {
         console.error('Failed to parse score data:', e);
         return;
     }
-    
-    console.log('Score data:', scoreData); //
     
     const beatmap = scoreData.beatmap || {};
     const beatmapset = scoreData.beatmapset || {};

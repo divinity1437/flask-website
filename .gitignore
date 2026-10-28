@@ -64,6 +64,10 @@ coverage.xml
 local_settings.py
 db.sqlite3
 instance/
+uploads/
+.pytest_cache/
+.ruff_cache/
+.coverage
 .webassets-cache
 
 # Scrapy

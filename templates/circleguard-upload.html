@@ -13,6 +13,7 @@
             <p class="text-muted mb-4">Upload an osu! replay file (.osr) to analyze performance metrics</p>
 
             <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="file-drop-zone" id="dropZone" 
                      style="border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: var(--border-radius); padding: 2rem; margin-bottom: 1.5rem; cursor: pointer; transition: var(--transition);">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-cloud-upload mb-3" viewBox="0 0 16 16" style="color: var(--primary);">

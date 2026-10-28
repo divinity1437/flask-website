@@ -43,11 +43,11 @@
 
 | Component        | Technologies |
 |------------------|--------------|
-| Backend          | Python 3.9, Flask, Circleguard (circlecore) |
+| Backend          | Python 3.12+, Flask, Circleguard (circlecore) |
 | Frontend         | HTML5, CSS3, JavaScript, Bootstrap 5 + custom CSS |
 | Charts           | Chart.js (scatter plot for snaps) |
 | APIs             | osu! API v2 (OAuth client_credentials), Okayu private API |
-| HTTP server      | Nginx + Gunicorn (production) / Flask dev server |
+| HTTP server      | Nginx + Gunicorn (production) / Flask development server |
 
 ---
 
@@ -104,7 +104,7 @@ python app.py
 # Then open http://localhost:5120
 
 ```
-For production use Gunicorn (or Waitress) behind a reverse proxy like Nginx.
+For production, set `BASE_URL`, secure OAuth redirect URIs, `SESSION_COOKIE_SECURE=true`, and run Gunicorn behind HTTPS. Keep `.env` and `instance/` private; they contain credentials and OAuth tokens.
 
 ### 🗺️ Environment Variables (.env)
 
@@ -114,6 +114,12 @@ For production use Gunicorn (or Waitress) behind a reverse proxy like Nginx.
 | `OSU_CLIENT_SECRET` | OAuth app secret | ✅ Yes (for Bancho API / OAuth) |
 | `SECRET_KEY` | Flask session secret | ✅ Yes |
 | `Circleguard` | API key for Circleguard | ⚠️ Only if using replay analysis |
+| `DONATIONALERTS_CLIENT_ID` / `DONATIONALERTS_CLIENT_SECRET` | DonationAlerts OAuth credentials | Optional |
+| `DONATIONALERTS_GOAL_ID` / `DONATIONALERTS_ADMIN_OSU_ID` | Donation goal and owner account IDs | Optional |
+| `DONATIONALERTS_GOAL_URL` | Private DonationAlerts goal widget URL | Optional |
+| `OSU_REDIRECT_URI` / `DONATIONALERTS_REDIRECT_URI` | Registered OAuth callback URLs | OAuth required |
+| `MAX_UPLOAD_BYTES` | Maximum replay upload size | Optional |
+| `OWNER_FIRST_NAME`, `OWNER_LAST_NAME`, `OWNER_ALIAS` | Public home-page identity fields | Optional |
 
 > **Note:** `Circleguard` is optional – replay analysis will still work but may have limited features without it.
 
@@ -133,7 +139,7 @@ This project is for self-education purposes only. The code can be used and read,
 ------
 
 - [CircleGuard](https://github.com/circleguard/circleguard) | Replay analysis backend
-- [osu!Okayu](https://okayu.click) | Private osu! server & API
+- [osu!Okayu](https://osuokayu.pw) | Private osu! server & API
 - [osu!bancho](https://osu.ppy.sh) | Our beauty and wonder game that we love <3
 
 

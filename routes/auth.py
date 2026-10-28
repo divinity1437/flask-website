@@ -1,79 +1,97 @@
-import os
-import requests
-from flask import Blueprint, redirect, url_for, session, request, render_template
+import logging
+import secrets
 from urllib.parse import urlencode
-from dotenv import load_dotenv
 
-load_dotenv()
+import requests
+from flask import Blueprint, redirect, session, request, url_for
 
-auth_bp = Blueprint('auth', __name__)
+from config import BASE_URL, env
 
-CLIENT_ID = os.environ.get("OSU_CLIENT_ID")
-CLIENT_SECRET = os.environ.get("OSU_CLIENT_SECRET")
-REDIRECT_URI = os.environ.get("OSU_REDIRECT_URI", "https://owouser.osuokayu.pw/auth/callback")
+logger = logging.getLogger(__name__)
+auth_bp = Blueprint("auth", __name__)
 
-@auth_bp.route('/auth/login')
+
+def credentials():
+    return env("OSU_CLIENT_ID"), env("OSU_CLIENT_SECRET")
+
+
+def redirect_uri():
+    return env("OSU_REDIRECT_URI", f"{BASE_URL}/auth/callback")
+
+
+@auth_bp.route("/auth/login")
 def login():
-    if not CLIENT_ID:
-        return "OAuth not configured: OSU_CLIENT_ID is missing", 500
-    
+    client_id, client_secret = credentials()
+    if not client_id:
+        return "OAuth not configured", 503
+    state = secrets.token_urlsafe(32)
+    session["osu_oauth_state"] = state
     params = {
-        'client_id': CLIENT_ID,
-        'redirect_uri': REDIRECT_URI,
-        'response_type': 'code',
-        'scope': 'identify public'
+        "client_id": client_id,
+        "redirect_uri": redirect_uri(),
+        "response_type": "code",
+        "scope": "identify public",
+        "state": state,
     }
-    auth_url = "https://osu.ppy.sh/oauth/authorize?" + urlencode(params)
-    return redirect(auth_url)
+    return redirect("https://osu.ppy.sh/oauth/authorize?" + urlencode(params))
 
-@auth_bp.route('/auth/callback')
+
+@auth_bp.route("/auth/callback")
 def callback():
-    code = request.args.get('code')
-    if not code:
-        return "Authorization failed (no code)", 400
+    expected_state = session.pop("osu_oauth_state", None)
+    received_state = request.args.get("state", "")
+    if not expected_state or not secrets.compare_digest(expected_state, received_state):
+        return "Authorization state mismatch", 400
+    if request.args.get("error"):
+        return "Authorization was denied", 400
+    code = request.args.get("code")
+    client_id, client_secret = credentials()
+    if not code or not client_id or not client_secret:
+        return "Authorization failed", 400
 
-    if not CLIENT_ID or not CLIENT_SECRET:
-        return "OAuth not configured properly", 500
-
-    token_url = "https://osu.ppy.sh/oauth/token"
-    data = {
-        'client_id': CLIENT_ID,
-        'client_secret': CLIENT_SECRET,
-        'code': code,
-        'grant_type': 'authorization_code',
-        'redirect_uri': REDIRECT_URI
-    }
-
-    response = requests.post(token_url, data=data)
-    if response.status_code != 200:
-        return f"Token exchange failed: {response.text}", 400
-
-    token_data = response.json()
-    access_token = token_data.get('access_token')
-
-    user_response = requests.get(
-        'https://osu.ppy.sh/api/v2/me',
-        headers={'Authorization': f'Bearer {access_token}'}
-    )
-
-    if user_response.status_code == 200:
+    try:
+        response = requests.post(
+            "https://osu.ppy.sh/oauth/token",
+            data={
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "code": code,
+                "grant_type": "authorization_code",
+                "redirect_uri": redirect_uri(),
+            },
+            timeout=(5, 15),
+        )
+        response.raise_for_status()
+        access_token = response.json().get("access_token")
+        if not access_token:
+            return "Authorization failed", 400
+        user_response = requests.get(
+            "https://osu.ppy.sh/api/v2/me",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=(5, 15),
+        )
+        user_response.raise_for_status()
         user_data = user_response.json()
-        session['user'] = {
-            'id': user_data['id'],
-            'username': user_data['username'],
-            'avatar_url': user_data['avatar_url'],
-            'country_code': user_data['country']['code'],
-            'server': 'bancho'  #标记来自Bancho
-        }
-    else:
-        return f"Failed to get user data: {user_response.text}", 400
+    except (requests.RequestException, ValueError, KeyError) as error:
+        logger.warning("osu! OAuth callback failed: %s", type(error).__name__)
+        return "Authorization failed", 502
 
-    if session.pop('after_osu_login', None) == 'donations.connect':
-        return redirect(url_for('donations.connect'))
+    country = user_data.get("country") or {}
+    after_login = session.get("after_osu_login")
+    session.clear()
+    session["user"] = {
+        "id": user_data.get("id"),
+        "username": user_data.get("username", ""),
+        "avatar_url": user_data.get("avatar_url", ""),
+        "country_code": country.get("code", ""),
+        "server": "bancho",
+    }
+    if after_login == "donations.connect":
+        return redirect(url_for("donations.connect"))
+    return redirect(url_for("inspector.inspector_index", username=session["user"]["username"]))
 
-    return redirect(url_for('inspector.inspector_index', username=session['user']['username']))
 
-@auth_bp.route('/auth/logout')
+@auth_bp.route("/auth/logout", methods=["POST"])
 def logout():
-    session.pop('user', None)
-    return redirect(url_for('inspector.inspector_index'))
+    session.pop("user", None)
+    return redirect(url_for("inspector.inspector_index"))

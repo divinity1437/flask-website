@@ -1,8 +1,9 @@
-Flask
-requests
-python-dotenv
-Circleguard
-slider
-Werkzeug
-websocket-client
-dotenv
+Flask>=3.1,<4
+requests>=2.32,<3
+python-dotenv>=1.0,<2
+Circleguard>=4.0,<5
+slider>=0.8,<1
+Werkzeug>=3.1,<4
+websocket-client>=1.8,<2
+redis>=5,<7
+gunicorn>=23,<24

@@ -17,7 +17,7 @@
     <!-- Beatmap Card -->
     {% if replay.beatmap %}
     <div class="card beatmap-card fade-in" style="margin-bottom: 1.5rem; overflow: hidden;">
-        <div class="beatmap-bg" style="position: relative; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url('https://assets.ppy.sh/beatmaps/{{ replay.beatmap.beatmapset_id }}/covers/cover.jpg'); background-size: cover; background-position: center; padding: 1.5rem;">
+        <div class="beatmap-bg" style="position: relative; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url('https://assets.ppy.sh/beatmaps/{{ replay.beatmap.beatmapset_id|int }}/covers/cover.jpg'); background-size: cover; background-position: center; padding: 1.5rem;">
             <h3 style="margin-bottom: 0.5rem;">{{ replay.beatmapset.artist }} – {{ replay.beatmapset.title }}</h3>
             <p class="mb-2">
                 <strong>{{ replay.beatmap.version }}</strong> • mapped by {{ replay.beatmapset.creator }}
@@ -27,7 +27,7 @@
                 {% if replay.beatmap.length %}<span>⏱️ Length: {{ replay.beatmap.length }}s</span>{% endif %}
                 <span>💪 CS:{{ replay.beatmap.cs }} / AR:{{ replay.beatmap.ar }} / OD:{{ replay.beatmap.od }} / HP:{{ replay.beatmap.hp }}</span>
             </div>
-            <a href="https://osu.ppy.sh/beatmapsets/{{ replay.beatmap.beatmapset_id }}/#osu/{{ replay.beatmap_id }}" class="btn btn-outline-light btn-sm mt-3" target="_blank" style="display: inline-block; color: white;">View on osu! →</a>
+            <a href="https://osu.ppy.sh/beatmapsets/{{ replay.beatmap.beatmapset_id|int }}/#osu/{{ replay.beatmap_id|int }}" class="btn btn-outline-light btn-sm mt-3" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: white;">View on osu! →</a>
         </div>
     </div>
     {% endif %}
@@ -107,7 +107,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const cacheId = "{{ replay.cache_id }}";
+    const cacheId = {{ replay.cache_id|default('')|tojson }};
     
     if (cacheId) {
         fetch(`/circleguard/api/frametimes/${cacheId}`)

@@ -1,19 +1,19 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, current_app, render_template
 
-home_bp = Blueprint('home', __name__, template_folder='../templates')
+home_bp = Blueprint("home", __name__, template_folder="../templates")
 
-common = {
-    'first_name': 'OwOuser',
-    'last_name': 'A.K.A MyAngelAkia',
-    'alias': 'OwOuser',
-    'domain': 'osuokayu.pw'
-}
 
-@home_bp.route('/')
+@home_bp.route("/")
 def index():
-    return render_template('home.html', common=common)
+    common = {
+        "first_name": current_app.config.get("OWNER_FIRST_NAME", ""),
+        "last_name": current_app.config.get("OWNER_LAST_NAME", ""),
+        "alias": current_app.config.get("OWNER_ALIAS", ""),
+        "domain": "osuokayu.pw",
+    }
+    return render_template("home.html", common=common)
 
 
-@home_bp.route('/donationgoals')
+@home_bp.route("/donationgoals")
 def donation_goals():
-    return render_template('donationgoals.html')
+    return render_template("donationgoals.html")
