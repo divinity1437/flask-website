@@ -46,6 +46,8 @@ def secret_key():
         return path.read_text(encoding="utf-8").strip()
 
 
-DOMAIN = "osuokayu.pw"
+DOMAIN = env("DOMAIN", "osuokayu.pw").strip().lower()
 BASE_URL = env("BASE_URL", f"https://{DOMAIN}").rstrip("/")
+OKAYU_API_URL = env("OKAYU_API_URL", f"https://api.{DOMAIN}").rstrip("/")
+OKAYU_AVATAR_URL = env("OKAYU_AVATAR_URL", f"https://a.{DOMAIN}").rstrip("/")
 MAX_UPLOAD_BYTES = int_env("MAX_UPLOAD_BYTES", 32 * 1024 * 1024)

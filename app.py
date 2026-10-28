@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify, render_template, request
 
-from config import MAX_UPLOAD_BYTES, secret_key
+from config import DOMAIN, MAX_UPLOAD_BYTES, OKAYU_API_URL, OKAYU_AVATAR_URL, secret_key
 from security import csrf_token, validate_csrf
 from routes.home import home_bp
 from routes.inspector import inspector_bp
@@ -44,7 +44,9 @@ def create_app(test_config=None):
                 "first_name": app.config.get("OWNER_FIRST_NAME", ""),
                 "last_name": app.config.get("OWNER_LAST_NAME", ""),
                 "alias": app.config.get("OWNER_ALIAS", ""),
-                "domain": "osuokayu.pw",
+                "domain": DOMAIN,
+                "api_url": OKAYU_API_URL,
+                "avatar_url": OKAYU_AVATAR_URL,
             },
         }
 
@@ -56,7 +58,7 @@ def create_app(test_config=None):
         response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
         response.headers.setdefault(
             "Content-Security-Policy",
-            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://osu.ppy.sh https://api.osuokayu.pw; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://osu.ppy.sh https://www.donationalerts.com",
+            f"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://osu.ppy.sh {OKAYU_API_URL}; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://osu.ppy.sh https://www.donationalerts.com",
         )
         if request.is_secure:
             response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")

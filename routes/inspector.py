@@ -7,6 +7,7 @@ from urllib.parse import quote
 import requests
 from flask import Blueprint, Response, jsonify, render_template, request, session
 
+from config import DOMAIN, OKAYU_API_URL, OKAYU_AVATAR_URL
 from security import enforce_rate_limit
 
 logger = logging.getLogger(__name__)
@@ -106,7 +107,7 @@ def transform_bancho_data(bancho_user, mode):
 
 def get_osu_user_okayu(username):
     try:
-        response = requests.get("https://api.osuokayu.pw/v1/get_player_info", params={"name": username, "scope": "all"}, timeout=(3, 8))
+        response = requests.get(f"{OKAYU_API_URL}/v1/get_player_info", params={"name": username, "scope": "all"}, timeout=(3, 8))
         if response.status_code != 200:
             return None
         data = response.json()
@@ -121,8 +122,8 @@ def get_osu_user_okayu(username):
                     item["level"] = int(total ** 0.4 * 0.2) if total > 0 else 1
         info = player.get("info") or {}
         if isinstance(info, dict) and info.get("id"):
-            info["cover_url"] = f"https://osuokayu.pw/banners/{quote(str(info['id']), safe='')}"
-            info["avatar_url"] = f"https://a.osuokayu.pw/{quote(str(info['id']), safe='')}"
+            info["cover_url"] = f"https://{DOMAIN}/banners/{quote(str(info['id']), safe='')}"
+            info["avatar_url"] = f"{OKAYU_AVATAR_URL}/{quote(str(info['id']), safe='')}"
         return player
     except (requests.RequestException, ValueError, TypeError) as error:
         logger.warning("Okayu user lookup failed: %s", type(error).__name__)
@@ -131,7 +132,7 @@ def get_osu_user_okayu(username):
 
 def get_player_status_okayu(username):
     try:
-        response = requests.get("https://api.osuokayu.pw/v1/get_player_status", params={"name": username}, timeout=(3, 8))
+        response = requests.get(f"{OKAYU_API_URL}/v1/get_player_status", params={"name": username}, timeout=(3, 8))
         data = response.json()
         status = data.get("player_status") if isinstance(data, dict) else None
         return (bool(status.get("online")), status.get("last_seen")) if isinstance(status, dict) and data.get("status") == "success" else (False, None)
@@ -142,7 +143,7 @@ def get_player_status_okayu(username):
 
 def get_top_scores_okayu(username, mode=0, limit=5):
     try:
-        response = requests.get("https://api.osuokayu.pw/v1/get_player_scores", params={"name": username, "scope": "best", "limit": limit, "mode": mode}, timeout=(3, 8))
+        response = requests.get(f"{OKAYU_API_URL}/v1/get_player_scores", params={"name": username, "scope": "best", "limit": limit, "mode": mode}, timeout=(3, 8))
         data = response.json()
         if not isinstance(data, dict) or data.get("status") != "success":
             return []
@@ -287,7 +288,7 @@ def replay_available():
             return jsonify({"available": cached[1]})
     available = False
     try:
-        response = requests.get(f"https://api.osuokayu.pw/v1/get_replay", params={"id": score_id}, timeout=(3, 8), stream=True)
+        response = requests.get(f"{OKAYU_API_URL}/v1/get_replay", params={"id": score_id}, timeout=(3, 8), stream=True)
         available = response.status_code == 200 and next(response.iter_content(chunk_size=1), b"") != b""
         response.close()
     except requests.RequestException as error:
@@ -314,7 +315,7 @@ def download_replay(server, score_id):
         download_url = f"https://osu.ppy.sh/api/v2/scores/{mode_str}/{score_id}/download"
         headers = {"Authorization": f"Bearer {token}", "Accept": "application/octet-stream"}
     else:
-        download_url = "https://api.osuokayu.pw/v1/get_replay"
+        download_url = f"{OKAYU_API_URL}/v1/get_replay"
     try:
         response = requests.get(download_url, headers=headers, params={"id": score_id} if server == "okayu" else None, timeout=(5, 30), stream=True)
         if server == "bancho" and response.status_code == 404:
